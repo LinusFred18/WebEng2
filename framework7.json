@@ -1,0 +1,19 @@
+{
+  "cwd": "C:\\Users\\david\\Documents\\_DHBW\\WebEngZwei\\WebEng2",
+  "type": [
+    "web",
+    "pwa"
+  ],
+  "name": "Gockel Maps",
+  "framework": "react",
+  "template": "tabs",
+  "cssPreProcessor": false,
+  "bundler": "vite",
+  "theming": {
+    "customColor": false,
+    "color": "#007aff",
+    "darkMode": false,
+    "iconFonts": true
+  },
+  "customBuild": false
+}
