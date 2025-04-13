@@ -6,7 +6,7 @@ Framework7 app created with following options:
 
 ```
 {
-  "cwd": "C:\\Users\\david\\Documents\\_DHBW\\WebEngZwei\\WebEng2",
+  "cwd": ".",
   "type": [
     "web",
     "pwa"
