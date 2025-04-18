@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
 
 // Custom Hook für draggable Marker
 const DraggableMarker = () => {
-  const [position, setPosition] = useState([48.130064, 11.583815]);
+  const [position, setPosition] = useState([48.150901, 11.571602]);
   const markerRef = useRef(null);
 
   const eventHandlers = {
