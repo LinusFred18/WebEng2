@@ -12,8 +12,9 @@ import {
   BlockTitle,
   List,
   ListItem,
-  Button
+  Button,
 } from 'framework7-react';
+import MapView from './map';
 
 const HomePage = () => (
   <Page name="home">
@@ -30,6 +31,7 @@ const HomePage = () => (
     </Navbar>
 
     {/* Page content */}
+    <MapView />
     <Block>
       <p>This is an example of tabs-layout application. The main point of such tabbed layout is that each tab contains independent view with its own routing and navigation.</p>
 
