@@ -15,12 +15,14 @@ import {
   Button,
 } from 'framework7-react';
 import MapView from './gps';
+import ReverseGeocoding from './reverseGeocoding';
 
 const HomePage = () => (
   <Page name="home">
 
     {/* Page content */}
     <MapView />
+    <ReverseGeocoding />
 
     <BlockTitle>Panels</BlockTitle>
     <Block className="grid grid-cols-2 grid-gap">
