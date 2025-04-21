@@ -16,6 +16,7 @@ import {
 } from 'framework7-react';
 import MapView from './gps';
 import ReverseGeocoding from './reverseGeocoding';
+import MapView from './map';
 
 const HomePage = () => (
   <Page name="home">
