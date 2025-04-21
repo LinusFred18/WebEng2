@@ -1,7 +1,7 @@
 const fetch = require('node-fetch'); 
 
 const searchTerm = 'Berlin';
-const url = `https://en.wikipedia.org/w/api.php?origin=*&action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&format=json`;
+const url = `https://de.wikipedia.org/w/api.php?origin=*&action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&format=json`;
 
 //This method fetches the wikipedia data, from the term defined in the "searchTerm" variable. it returns a json with the title, the snippet and the url
 async function fetchWikiData() {
