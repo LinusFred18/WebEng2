@@ -17,6 +17,7 @@ import {
 
 import ReverseGeocoding from './reverseGeocoding';
 import MapView from './map';
+import WikiFetcher from '../components/WikipediaAPI';
 
 const HomePage = () => (
   <Page name="home">
@@ -24,6 +25,7 @@ const HomePage = () => (
     {/* Page content */}
     <MapView />
     <ReverseGeocoding />
+    <WikiFetcher />
 
     <BlockTitle>Panels</BlockTitle>
     <Block className="grid grid-cols-2 grid-gap">
