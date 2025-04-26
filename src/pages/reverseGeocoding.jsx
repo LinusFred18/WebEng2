@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const GeoLocationWithReverse = ({ setAddressData }) => {
+const GeoLocationWithReverse = ({ setAddressData, setLatitude, setLongitude, latitude2, longitude2 }) => {
   const [gpsLocation, setGPSPosition] = useState(null);
   const [geoError, setGeoError] = useState(null);
 
@@ -47,18 +47,28 @@ const GeoLocationWithReverse = ({ setAddressData }) => {
   useEffect(() => {
     if (gpsLocation) {
       const { latitude, longitude } = gpsLocation;
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (setAddressData) {
-            setAddressData(data.address);
-          }
-        })
-        .catch((err) => {
-          console.error("Fehler bei der Adressabfrage:", err);
-        });
+      console.log("A:", latitude2, longitude2);
+      setLatitude(latitude);
+      setLongitude(longitude);
+
+      if (latitude2 != null && longitude2 != null){
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude2}&lon=${longitude2}`)
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("C:", data.adress);
+            if (data.adress == null){
+              data.adress = {road: "test"}
+            }
+            setAddressData(data.address.road);
+
+          })
+          .catch((err) => {
+            console.error("Fehler bei der Adressabfrage:", err);
+          });
+      }
     }
-  }, [gpsLocation, setAddressData]);
+  }, [gpsLocation, latitude2, longitude2]);
+  
 
   return (
     <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
