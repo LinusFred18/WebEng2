@@ -1,36 +1,42 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Page,
-  Navbar,
-  NavLeft,
-  NavTitle,
-  NavTitleLarge,
-  NavRight,
-  Link,
-  Toolbar,
   Block,
   BlockTitle,
-  List,
-  ListItem,
   Button,
 } from 'framework7-react';
 
 import ReverseGeocoding from './reverseGeocoding';
 import MapView from './map';
+import Route from './route'; // Import der neuen Route-Komponente
 
-const HomePage = () => (
-  <Page name="home">
+const HomePage = () => {
+  const routeRef = useRef(null);
 
-    {/* Page content */}
-    <MapView />
-    <ReverseGeocoding />
+  const handleRouteCalculation = () => {
+    if (routeRef.current) {
+      routeRef.current.calculateRoute();
+    }
+  };
 
-    <BlockTitle>Panels</BlockTitle>
-    <Block className="grid grid-cols-2 grid-gap">
-      <Button fill panelOpen="left">Left Panel</Button>
-      <Button fill panelOpen="right">Right Panel</Button>
-    </Block>
+  return (
+    <Page name="home">
+      <MapView routeRef={routeRef} />
+      <ReverseGeocoding />
 
-  </Page>
-);
+      <Block strong>
+        <Button fill onClick={handleRouteCalculation}>
+          Route berechnen
+        </Button>
+      </Block>
+
+      <BlockTitle>Panels</BlockTitle>
+      <Block className="grid grid-cols-2 grid-gap">
+        <Button fill panelOpen="left">Left Panel</Button>
+        <Button fill panelOpen="right">Right Panel</Button>
+      </Block>
+    </Page>
+  );
+};
+
 export default HomePage;
