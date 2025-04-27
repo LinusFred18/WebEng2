@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Page,
   Navbar,
@@ -18,19 +18,33 @@ import {
 import ReverseGeocoding from './reverseGeocoding';
 import MapView from './map';
 
-const HomePage = () => (
-  <Page name="home">
+const HomePage = () => {
+  const mapRef = useRef();
 
-    {/* Page content */}
-    <MapView />
-    <ReverseGeocoding />
+  const handleRouteCalculation = () => {
+    if (mapRef.current) {
+      mapRef.current.calculateRoute(); 
+    }
+  };
 
-    <BlockTitle>Panels</BlockTitle>
-    <Block className="grid grid-cols-2 grid-gap">
-      <Button fill panelOpen="left">Left Panel</Button>
-      <Button fill panelOpen="right">Right Panel</Button>
-    </Block>
+  return (
+    <Page name="home">
 
-  </Page>
-);
+      {/* Page content */}
+      <MapView ref={mapRef} />
+      <Button fill onClick={handleRouteCalculation} style={{ margin: '1em' }}>
+        Route berechnen
+      </Button>
+
+      <ReverseGeocoding />
+
+      <BlockTitle>Panels</BlockTitle>
+      <Block className="grid grid-cols-2 grid-gap">
+        <Button fill panelOpen="left">Left Panel</Button>
+        <Button fill panelOpen="right">Right Panel</Button>
+      </Block>
+
+    </Page>
+  );
+};
 export default HomePage;
