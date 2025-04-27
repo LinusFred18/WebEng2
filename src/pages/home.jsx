@@ -3,6 +3,8 @@ import {
   Page,
   Block,
   BlockTitle,
+  Button,
+  Icon 
 } from 'framework7-react';
 
 import ReverseGeocoding from './reverseGeocoding';
@@ -11,14 +13,22 @@ import WikiFetcher from '../components/WikipediaAPI';
 
 const HomePage = () => {
   const [addressData, setAddressData] = useState(null);
+  // gps coordinates of user
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
 
+  // destination gps coordinates
   const [latitude2, setLatitude2] = useState(null);
   const [longitude2, setLongitude2] = useState(null);
 
   const [panelHeight, setPanelHeight] = useState(120); // Start klein
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const [showCoordinates, setShowCoordinates] = useState(true);
+
+  const toggleContent = () => {
+    setShowCoordinates(!showCoordinates);
+  };
 
   const panelRef = useRef(null);
   const touchData = useRef({
@@ -135,6 +145,31 @@ const HomePage = () => {
           overflowY: isExpanded ? 'auto' : 'hidden',
           padding: '0 16px',
         }}>
+
+        {/* button to switch between contents to be shown */}
+        <div>
+        <BlockTitle>Hier Button</BlockTitle>
+        <div style={{ display: 'flex', width: 'auto', justifyContent: 'space-between' }}>
+        <div>
+        {showCoordinates ? (
+          <div>
+          <p>Hier die Startkoordinaten: {latitude}, {longitude}</p>
+          <p>Hier die Zielkoordinaten: {latitude2}, {longitude2}</p>
+          </div>
+        ) : (
+          <div>
+          <p>Hier die Luftlinie</p>
+          <p>Hier die Route</p>
+          </div>
+        )}
+        </div>
+        <Button fill color="orange" small style={{ width: '15vw', float: 'right' }} onClick={toggleContent}>
+          SwitchButton
+          <Icon f7="arrow_right" size="20px" />
+        </Button>
+        </div>
+        </div>
+        
           <BlockTitle>Wikipedia Informationen</BlockTitle>
           <WikiFetcher query={addressData} />
         </div>
