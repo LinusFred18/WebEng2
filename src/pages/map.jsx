@@ -69,13 +69,12 @@ const MapView = () => {
         position: 'absolute',
         top: '2%',
         right: '2%',
-        width: '4vw',
-        height: '4vw',
-        maxWidth: '10rem',
-        maxHeight: '10rem',
+        aspectRatio: '1',
+        maxWidth: '5rem',
+        maxHeight: '5rem',
         zIndex: 1000,
-        pointerEvents: 'none',       // <<< Neu: blockiert Maus-Events
-        userSelect: 'none',           // <<< Neu: verhindert Text- oder Bildauswahl
+        pointerEvents: 'none',       // blockiert Maus-Events
+        userSelect: 'none',           // verhindert Text- oder Bildauswahl
       }}>
         <CompassSVG />
       </div>
