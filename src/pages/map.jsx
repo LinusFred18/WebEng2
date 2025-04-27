@@ -1,7 +1,8 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useRef, useState } from 'react';
+import CompassSVG from '../components/compass';
 
 // Standard-Marker-Icons fixen
 delete L.Icon.Default.prototype._getIconUrl;
@@ -11,7 +12,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Custom Hook für draggable Marker
 const DraggableMarker = () => {
   const [position, setPosition] = useState([48.150901, 11.571602]);
   const markerRef = useRef(null);
@@ -44,21 +44,42 @@ const DraggableMarker = () => {
 
 const MapView = () => {
   return (
-    <MapContainer center={[47.666873, 9.444825]} zoom={13} scrollWheelZoom={true} style={{ height: '60vh', width: '100%' }}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {/* Fester Marker */}
-      <Marker position={[47.666873, 9.444825]}>
-        <Popup>
-          Hier ist ein fester Marker! 📍
-        </Popup>
-      </Marker>
+    <div style={{ position: 'relative', height: '60vh', width: '100%' }}>
+      {/* MapContainer als Hintergrund */}
+      <MapContainer
+        center={[47.666873, 9.444825]}
+        zoom={13}
+        scrollWheelZoom={true}
+        style={{ height: '100%', width: '100%' }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={[47.666873, 9.444825]}>
+          <Popup>
+            Hier ist ein fester Marker! 📍
+          </Popup>
+        </Marker>
+        <DraggableMarker />
+      </MapContainer>
 
-      {/* Verschiebbarer Marker */}
-      <DraggableMarker />
-    </MapContainer>
+      {/* Kompass über der Karte */}
+      <div style={{
+        position: 'absolute',
+        top: '2%',
+        right: '2%',
+        width: '4vw',
+        height: '4vw',
+        maxWidth: '10rem',
+        maxHeight: '10rem',
+        zIndex: 1000,
+        pointerEvents: 'none',       // <<< Neu: blockiert Maus-Events
+        userSelect: 'none',           // <<< Neu: verhindert Text- oder Bildauswahl
+      }}>
+        <CompassSVG />
+      </div>
+    </div>
   );
 };
 
