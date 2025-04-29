@@ -1,7 +1,8 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useRef, useState } from 'react';
+import CompassSVG from '../components/compass';
 
 // Standard-Marker-Icons fixen
 delete L.Icon.Default.prototype._getIconUrl;
@@ -67,21 +68,37 @@ const MapView = ({latitude, longitude, setLatitude, setLongitude}) => {
 
 
   return (
-    <MapContainer center={[lat, long]} zoom={13} scrollWheelZoom={true} style={{ height: '60vh', width: '100%' }}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {/* Fester Marker */}
-      <Marker position={[lat, long]}>
-        <Popup>
-          Hier ist ein fester Marker! 📍
-        </Popup>
-      </Marker>
+    <div style={{ position: 'relative', height: '60vh', width: '100%' }}>
+      <MapContainer center={[lat, long]} zoom={13} scrollWheelZoom={true} style={{ height: '60vh', width: '100%' }}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {/* Fester Marker */}
+        <Marker position={[lat, long]}>
+          <Popup>
+            Hier ist ein fester Marker! 📍
+          </Popup>
+        </Marker>
 
-      {/* Verschiebbarer Marker */}
-      <DraggableMarker setLatitude={setLatitude} setLongitude={setLongitude}/>
-    </MapContainer>
+        {/* Verschiebbarer Marker */}
+        <DraggableMarker setLatitude={setLatitude} setLongitude={setLongitude}/>
+      </MapContainer>
+      {/* Kompass über der Karte */}
+      <div style={{
+        position: 'absolute',
+        top: '2%',
+        right: '2%',
+        aspectRatio: '1',
+        maxWidth: '5rem',
+        maxHeight: '5rem',
+        zIndex: 1000,
+        pointerEvents: 'none',       // blockiert Maus-Events
+        userSelect: 'none',           // verhindert Text- oder Bildauswahl
+      }}>
+        <CompassSVG />
+      </div>
+    </div>
   );
 };
 
