@@ -1,9 +1,11 @@
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import useGPSLocation from './gps';
+import CompassSVG from '../components/compass';
 
+// Standard-Marker-Icons fixen
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -11,7 +13,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const DraggableMarker = ({ position, setPosition, clearRoutes }) => {
+
+const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes }) => {
+  //const [position, setPosition] = useState([48.150901, 11.571602]);
   const markerRef = useRef(null);
 
   const eventHandlers = {
@@ -20,7 +24,10 @@ const DraggableMarker = ({ position, setPosition, clearRoutes }) => {
       if (marker != null) {
         const newPos = marker.getLatLng();
         setPosition([newPos.lat, newPos.lng]);
-        clearRoutes(); 
+        clearRoutes();
+        setLatitude(newPos.lat)
+        setLongitude(newPos.lng)
+        console.log("B: ", newPos.lat, newPos.lng)
       }
     },
   };
@@ -34,13 +41,12 @@ const DraggableMarker = ({ position, setPosition, clearRoutes }) => {
     >
       <Popup>
         <b>Verschieb mich!</b><br />
-        Latitude: {position[0].toFixed(6)}<br />
-        Longitude: {position[1].toFixed(6)}
+        Latitude: {position[0]?.toFixed(6)}<br />
+        Longitude: {position[1]?.toFixed(6)}
       </Popup>
     </Marker>
   );
 };
-
 
 const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes }) => {
   const { gpsLocation } = useGPSLocation();
@@ -79,12 +85,15 @@ const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes }) => {
   );
 };
 
-
-const MapView = forwardRef((props, ref) => {
+const MapView = forwardRef(({latitude, longitude, setLatitude, setLongitude}, ref) => {
   const [gpsPosition, setGpsPosition] = useState([47.666873, 9.444825]);
   const [markerPosition, setMarkerPosition] = useState([48.150901, 11.571602]);
   const [routeCoords, setRouteCoords] = useState([]);
   const [straightLineCoords, setStraightLineCoords] = useState([]);
+
+  const [lat, setLat] = useState(null);
+  const [long, setLong] = useState(null);
+  console.log('Latitude:', latitude, 'Longitude:', longitude);
 
   function clearRoutes() {
     setRouteCoords([]);
@@ -165,29 +174,58 @@ const MapView = forwardRef((props, ref) => {
       const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
       console.log('Nur Luftlinie:', luftlinieKm.toFixed(2), 'km');
     }
-
   }
 
+  useEffect(() => {
+    if (latitude) {
+      setLat(latitude);
+    }
+    if (longitude) {
+      setLong(longitude);
+    }
+  }, [latitude, longitude]); // <-- immer neu suchen, wenn sich die query ändert!
+  
+
+  if (lat == null || long == null) {
+    return <div>Lade Karte...</div>;
+  }
+
+
   return (
-    <MapContainer center={[47.666873, 9.444825]} zoom={13} scrollWheelZoom={true} style={{ height: '60vh', width: '100%' }}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <GPSDraggableMarker gpsPosition={gpsPosition} setGpsPosition={setGpsPosition} clearRoutes={clearRoutes} />
-      <DraggableMarker position={markerPosition} setPosition={setMarkerPosition} clearRoutes={clearRoutes} />
+    <div style={{ position: 'relative', height: '60vh', width: '100%' }}>
+      <MapContainer center={[lat, long]} zoom={13} scrollWheelZoom={true} style={{ height: '60vh', width: '100%' }}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <GPSDraggableMarker gpsPosition={gpsPosition} setGpsPosition={setGpsPosition} clearRoutes={clearRoutes} />
+        <DraggableMarker position={markerPosition} setPosition={setMarkerPosition} clearRoutes={clearRoutes} />
 
-      {/* KFZ-Route als blaue Linie */}
-      {routeCoords.length > 0 && (
-        <Polyline positions={routeCoords} color="blue" />
-      )}
+        {/* KFZ-Route als blaue Linie */}
+        {routeCoords.length > 0 && (
+          <Polyline positions={routeCoords} color="blue" />
+        )}
 
-      {/* Luftlinie als rote Linie */}
-      {straightLineCoords.length === 2 && (
-        <Polyline positions={straightLineCoords} color="red" dashArray="5,10" />
-      )}
-    </MapContainer>
-
+        {/* Luftlinie als rote Linie */}
+        {straightLineCoords.length === 2 && (
+          <Polyline positions={straightLineCoords} color="red" dashArray="5,10" />
+        )}
+      </MapContainer>
+      {/* Kompass über der Karte */}
+      <div style={{
+        position: 'absolute',
+        top: '2%',
+        right: '2%',
+        aspectRatio: '1',
+        maxWidth: '5rem',
+        maxHeight: '5rem',
+        zIndex: 1000,
+        pointerEvents: 'none',       // blockiert Maus-Events
+        userSelect: 'none',           // verhindert Text- oder Bildauswahl
+      }}>
+        <CompassSVG />
+      </div>
+    </div>
   );
 });
 
