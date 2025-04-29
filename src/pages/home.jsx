@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Page,
   Block,
@@ -17,68 +17,73 @@ const HomePage = () => {
   const [latitude2, setLatitude2] = useState(null);
   const [longitude2, setLongitude2] = useState(null);
 
-  const [panelHeight, setPanelHeight] = useState(120); // Start klein
-  const [isExpanded, setIsExpanded] = useState(false);
-
+  const [panelHeight, setPanelHeight] = useState(120);
   const panelRef = useRef(null);
-  const touchData = useRef({
+  const dragInfo = useRef({
     startY: null,
     startHeight: null,
+    isDragging: false,
   });
 
-  const MIN_HEIGHT = 120; // Panel Minimum
+  const MIN_HEIGHT = 120;
+  const MAX_HEIGHT = window.innerHeight * 0.9;
 
-  const handleTouchStart = (e) => {
-    touchData.current.startY = e.touches[0].clientY;
-    touchData.current.startHeight = panelHeight;
+  const startDrag = (y) => {
+    dragInfo.current.startY = y;
+    dragInfo.current.startHeight = panelHeight;
+    dragInfo.current.isDragging = true;
   };
 
-  const handleTouchMove = (e) => {
-    if (touchData.current.startY === null) return;
-    const currentY = e.touches[0].clientY;
-    const diff = touchData.current.startY - currentY;
-    const windowHeight = window.innerHeight; // Immer live lesen
-    const maxHeight = windowHeight * 0.9;
+  const doDrag = (y) => {
+    if (!dragInfo.current.isDragging) return;
 
-    let newHeight = touchData.current.startHeight + diff;
-    newHeight = Math.max(MIN_HEIGHT, Math.min(maxHeight, newHeight));
-
+    const diff = dragInfo.current.startY - y;
+    let newHeight = dragInfo.current.startHeight + diff;
+    newHeight = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, newHeight));
     setPanelHeight(newHeight);
   };
 
-  const handleTouchEnd = () => {
-    const windowHeight = window.innerHeight;
-    const snapPoint = windowHeight * 0.5;
+  const stopDrag = () => {
+    dragInfo.current.startY = null;
+    dragInfo.current.startHeight = null;
+    dragInfo.current.isDragging = false;
+  };
 
-    if (panelHeight > snapPoint) {
-      setPanelHeight(windowHeight * 0.9); // Hochklappen
-      setIsExpanded(true);
-    } else {
-      setPanelHeight(MIN_HEIGHT); // Runterklappen
-      setIsExpanded(false);
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (dragInfo.current.isDragging) {
+        doDrag(e.clientY);
+      }
+    };
+    const handleMouseUp = () => {
+      if (dragInfo.current.isDragging) {
+        stopDrag();
+      }
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  const handleTouchStart = (e) => startDrag(e.touches[0].clientY);
+  const handleTouchMove = (e) => {
+    if (dragInfo.current.isDragging) {
+      doDrag(e.touches[0].clientY);
     }
-
-    touchData.current.startY = null;
-    touchData.current.startHeight = null;
   };
-
-  const handleCollapse = () => {
-    setPanelHeight(MIN_HEIGHT);
-    setIsExpanded(false);
-  };
+  const handleTouchEnd = () => stopDrag();
 
   return (
     <Page name="home">
-
-      {/* Karte */}
       <MapView
         latitude={latitude}
         longitude={longitude}
         setLatitude={setLatitude2}
         setLongitude={setLongitude2}
       />
-
-      {/* Reverse Geocoding */}
       <ReverseGeocoding
         setAddressData={setAddressData}
         setLatitude={setLatitude}
@@ -86,13 +91,11 @@ const HomePage = () => {
         latitude2={latitude2}
         longitude2={longitude2}
       />
-
-      {/* Adresse */}
       <Block strong>
         Straße: {addressData?.road || 'Warte auf Adresse...'}
       </Block>
 
-      {/* --- Fixiertes Panel unten --- */}
+      {/* Bottom Panel */}
       <div
         ref={panelRef}
         style={{
@@ -105,41 +108,50 @@ const HomePage = () => {
           borderTopLeftRadius: '20px',
           borderTopRightRadius: '20px',
           boxShadow: '0px -2px 10px rgba(0,0,0,0.1)',
-          transition: touchData.current.startY === null ? 'height 0.3s' : 'none',
-          overflow: isExpanded ? 'auto' : 'hidden',
-          touchAction: 'none',
+          transition: dragInfo.current.isDragging ? 'none' : 'height 0.2s',
+          overflow: 'hidden',
           zIndex: 999,
           display: 'flex',
           flexDirection: 'column',
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
-        {/* Griff */}
+        {/* Ziehgriff (Drag-Zone) */}
         <div
-          onClick={isExpanded ? handleCollapse : undefined}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={(e) => startDrag(e.clientY)}
           style={{
+            height: '20px',
+            width: '100%',
+            cursor: 'grab',
+            touchAction: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div style={{
             width: '40px',
             height: '5px',
             background: '#ccc',
             borderRadius: '4px',
-            margin: '10px auto',
-            cursor: 'pointer',
-          }}
-        />
+          }} />
+        </div>
 
-        {/* Panel Inhalt */}
-        <div style={{
-          flex: 1,
-          overflowY: isExpanded ? 'auto' : 'hidden',
-          padding: '0 16px',
-        }}>
+        {/* Scrollbarer Inhalt */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '0 16px',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
           <BlockTitle>Wikipedia Informationen</BlockTitle>
           <WikiFetcher query={addressData} />
         </div>
       </div>
-
     </Page>
   );
 };
