@@ -12,7 +12,14 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
-
+const redIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
 
 const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes }) => {
   //const [position, setPosition] = useState([48.150901, 11.571602]);
@@ -38,6 +45,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
       eventHandlers={eventHandlers}
       position={position}
       ref={markerRef}
+      icon={redIcon}
     >
       <Popup>
         <b>Verschieb mich!</b><br />
@@ -186,20 +194,15 @@ const MapView = forwardRef(({latitude, longitude, setLatitude, setLongitude}, re
   }, [latitude, longitude]); // <-- immer neu suchen, wenn sich die query ändert!
   
 
-  if (lat == null || long == null) {
-    return <div>Lade Karte...</div>;
-  }
-
-
   return (
     <div style={{ position: 'relative', height: '60vh', width: '100%' }}>
-      <MapContainer center={[lat, long]} zoom={13} scrollWheelZoom={true} style={{ height: '60vh', width: '100%' }}>
+      <MapContainer bounds={[markerPosition, gpsPosition]} zoom={13} scrollWheelZoom={true} style={{ height: '60vh', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <GPSDraggableMarker gpsPosition={gpsPosition} setGpsPosition={setGpsPosition} clearRoutes={clearRoutes} />
-        <DraggableMarker position={markerPosition} setPosition={setMarkerPosition} clearRoutes={clearRoutes} />
+        <DraggableMarker setLatitude={setLatitude} setLongitude={setLongitude} position={markerPosition} setPosition={setMarkerPosition} clearRoutes={clearRoutes} />
 
         {/* KFZ-Route als blaue Linie */}
         {routeCoords.length > 0 && (
