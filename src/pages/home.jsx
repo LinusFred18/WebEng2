@@ -168,7 +168,7 @@ const HomePage = () => {
         <Button small style={{ width: '20vw', height: '10vw', float: 'right', backgroundColor: '#cce7ff',  
                                border: '2px solid #66a3e0', borderRadius: '10px',}} onClick={toggleContent}>
           <img
-            src={showCoordinates ? '/icons/location3.png' : '/icons/route2.png'}
+            src={showCoordinates ? '/icons/route2.png' : '/icons/location3.png'}
             alt="Toggle View"
             style={{ width: '7vw', height: '7vw' }}
           />
