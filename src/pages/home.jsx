@@ -155,13 +155,13 @@ const HomePage = () => {
         <div>
         {showCoordinates ? (
           <div>
-          <p>Hier die Startkoordinaten: {latitude}, {longitude}</p>
-          <p>Hier die Zielkoordinaten: {latitude2}, {longitude2}</p>
+          <p style={{ flexShrink: 1, width: 'fit-content' }}>Start:<br/>{latitude}<br/>{longitude}</p>
+          <p style={{ flexShrink: 1, width: 'fit-content' }}>Ziel:<br/>{latitude2}<br/>{longitude2}</p>
           </div>
         ) : (
           <div>
-          <p>Hier die Luftlinie</p>
-          <p>Hier die Route</p>
+          <p>Luftlinie</p>
+          <p>Route</p>
           </div>
         )}
         </div>
