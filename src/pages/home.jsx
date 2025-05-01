@@ -10,6 +10,8 @@ import {
 import ReverseGeocoding from './reverseGeocoding';
 import MapView from './map';
 import WikiFetcher from '../components/WikipediaAPI';
+//import coordinatesIcon from './icons/icons8-address-100.png';
+//import routeIcon from 'public/icons/icons8-address-100.png';
 
 const HomePage = () => {
   const [addressData, setAddressData] = useState(null);
@@ -163,9 +165,13 @@ const HomePage = () => {
           </div>
         )}
         </div>
-        <Button fill color="orange" small style={{ width: '15vw', float: 'right' }} onClick={toggleContent}>
-          SwitchButton
-          <Icon f7="arrow_right" size="20px" />
+        <Button small style={{ width: '20vw', height: '10vw', float: 'right', backgroundColor: '#cce7ff',  
+                               border: '2px solid #66a3e0', borderRadius: '10px',}} onClick={toggleContent}>
+          <img
+            src={showCoordinates ? '/icons/location3.png' : '/icons/route2.png'}
+            alt="Toggle View"
+            style={{ width: '7vw', height: '7vw' }}
+          />
         </Button>
         </div>
         </div>
