@@ -1,7 +1,9 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
+import useGPSLocation from './gps';
+import CompassSVG from '../components/compass';
 
 // Standard-Marker-Icons fixen
 delete L.Icon.Default.prototype._getIconUrl;
@@ -10,10 +12,17 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
+const redIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
 
-
-const DraggableMarker = ({ setLatitude, setLongitude }) => {
-  const [position, setPosition] = useState([48.150901, 11.571602]);
+const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes }) => {
+  //const [position, setPosition] = useState([48.150901, 11.571602]);
   const markerRef = useRef(null);
 
   const eventHandlers = {
@@ -22,6 +31,7 @@ const DraggableMarker = ({ setLatitude, setLongitude }) => {
       if (marker != null) {
         const newPos = marker.getLatLng();
         setPosition([newPos.lat, newPos.lng]);
+        clearRoutes();
         setLatitude(newPos.lat)
         setLongitude(newPos.lng)
         console.log("B: ", newPos.lat, newPos.lng)
@@ -35,6 +45,7 @@ const DraggableMarker = ({ setLatitude, setLongitude }) => {
       eventHandlers={eventHandlers}
       position={position}
       ref={markerRef}
+      icon={redIcon}
     >
       <Popup>
         <b>Verschieb mich!</b><br />
@@ -45,11 +56,133 @@ const DraggableMarker = ({ setLatitude, setLongitude }) => {
   );
 };
 
+const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes }) => {
+  const { gpsLocation } = useGPSLocation();
+  const markerRef = useRef(null);
 
-const MapView = ({latitude, longitude, setLatitude, setLongitude}) => {
+  useEffect(() => {
+    if (gpsLocation) {
+      setGpsPosition([gpsLocation.latitude, gpsLocation.longitude]);
+    }
+  }, [gpsLocation]);
+
+  const eventHandlers = {
+    dragend() {
+      const marker = markerRef.current;
+      if (marker != null) {
+        const newPos = marker.getLatLng();
+        setGpsPosition([newPos.lat, newPos.lng]);
+        clearRoutes(); 
+      }
+    },
+  };
+
+  return (
+    <Marker
+      draggable={true}
+      eventHandlers={eventHandlers}
+      position={gpsPosition}
+      ref={markerRef}
+    >
+      <Popup>
+        <b>GPS Marker</b><br />
+        Latitude: {gpsPosition[0].toFixed(6)}<br />
+        Longitude: {gpsPosition[1].toFixed(6)}
+      </Popup>
+    </Marker>
+  );
+};
+
+const MapView = forwardRef(({latitude, longitude, setLatitude, setLongitude}, ref) => {
+  const [gpsPosition, setGpsPosition] = useState([47.666873, 9.444825]);
+  const [markerPosition, setMarkerPosition] = useState([48.150901, 11.571602]);
+  const [routeCoords, setRouteCoords] = useState([]);
+  const [straightLineCoords, setStraightLineCoords] = useState([]);
+
   const [lat, setLat] = useState(null);
   const [long, setLong] = useState(null);
   console.log('Latitude:', latitude, 'Longitude:', longitude);
+
+  function clearRoutes() {
+    setRouteCoords([]);
+    setStraightLineCoords([]);
+  }
+
+  useImperativeHandle(ref, () => ({
+    calculateRoute
+  }));
+
+  // Hilfsfunktion: Luftlinien-Entfernung berechnen
+  function calculateStraightLineDistance(pos1, pos2) {
+    const toRad = (value) => (value * Math.PI) / 180;
+
+    const [lat1, lon1] = pos1;
+    const [lat2, lon2] = pos2;
+
+    const R = 6371; // Radius der Erde in km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  async function calculateRoute() {
+    const apiKey = '5b3ce3597851110001cf62485a5ab427aa2b4912b22184def3d18af0';
+    const url = 'https://api.openrouteservice.org/v2/directions/driving-car/geojson';
+
+    const body = {
+      coordinates: [
+        [gpsPosition[1], gpsPosition[0]], 
+        [markerPosition[1], markerPosition[0]]
+      ]
+    };
+
+    console.log('Request-Body für OpenRouteService:', JSON.stringify(body, null, 2));
+
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Routing API Fehler:', data);
+        throw new Error(data.error?.message || 'Fehler bei der Anfrage');
+      }
+
+      const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      setRouteCoords(coords);
+
+      const distanceInMeters = data.features[0].properties.summary.distance;
+      const distanceInKm = distanceInMeters / 1000;
+      console.log('KFZ-Strecke:', distanceInKm.toFixed(2), 'km');
+
+      // Luftlinie
+      setStraightLineCoords([gpsPosition, markerPosition]);
+      const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
+      console.log('Luftlinie:', luftlinieKm.toFixed(2), 'km');
+
+    } catch (error) {
+      console.error('Fehler beim Routenberechnen:', error.message);
+      //alert('Keine KFZ-Route gefunden!');
+
+      setRouteCoords([]);
+      setStraightLineCoords([gpsPosition, markerPosition]);
+      const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
+      console.log('Nur Luftlinie:', luftlinieKm.toFixed(2), 'km');
+    }
+  }
 
   useEffect(() => {
     if (latitude) {
@@ -61,28 +194,42 @@ const MapView = ({latitude, longitude, setLatitude, setLongitude}) => {
   }, [latitude, longitude]); // <-- immer neu suchen, wenn sich die query ändert!
   
 
-  if (lat == null || long == null) {
-    return <div>Lade Karte...</div>;
-  }
-
-
   return (
-    <MapContainer center={[lat, long]} zoom={13} scrollWheelZoom={true} style={{ height: '60vh', width: '100%' }}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {/* Fester Marker */}
-      <Marker position={[lat, long]}>
-        <Popup>
-          Hier ist ein fester Marker! 📍
-        </Popup>
-      </Marker>
+    <div style={{ position: 'relative', height: '60vh', width: '100%' }}>
+      <MapContainer bounds={[markerPosition, gpsPosition]} zoom={13} scrollWheelZoom={true} style={{ height: '60vh', width: '100%' }}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <GPSDraggableMarker gpsPosition={gpsPosition} setGpsPosition={setGpsPosition} clearRoutes={clearRoutes} />
+        <DraggableMarker setLatitude={setLatitude} setLongitude={setLongitude} position={markerPosition} setPosition={setMarkerPosition} clearRoutes={clearRoutes} />
 
-      {/* Verschiebbarer Marker */}
-      <DraggableMarker setLatitude={setLatitude} setLongitude={setLongitude}/>
-    </MapContainer>
+        {/* KFZ-Route als blaue Linie */}
+        {routeCoords.length > 0 && (
+          <Polyline positions={routeCoords} color="blue" />
+        )}
+
+        {/* Luftlinie als rote Linie */}
+        {straightLineCoords.length === 2 && (
+          <Polyline positions={straightLineCoords} color="red" dashArray="5,10" />
+        )}
+      </MapContainer>
+      {/* Kompass über der Karte */}
+      <div style={{
+        position: 'absolute',
+        top: '2%',
+        right: '2%',
+        aspectRatio: '1',
+        maxWidth: '5rem',
+        maxHeight: '5rem',
+        zIndex: 1000,
+        pointerEvents: 'none',       // blockiert Maus-Events
+        userSelect: 'none',           // verhindert Text- oder Bildauswahl
+      }}>
+        <CompassSVG />
+      </div>
+    </div>
   );
-};
+});
 
 export default MapView;
