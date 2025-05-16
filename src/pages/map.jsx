@@ -192,8 +192,8 @@ const MapView = forwardRef(({latitude, longitude, setLatitude, setLongitude}, re
 
 
   return (
-    <div style={{ position: 'relative', height: '60vh', width: '100%' }}>
-      <MapContainer center={[lat, long]} zoom={13} scrollWheelZoom={true} style={{ height: '60vh', width: '100%' }}>
+    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+      <MapContainer center={[lat, long]} zoom={13} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

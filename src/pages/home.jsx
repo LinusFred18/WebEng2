@@ -86,12 +86,8 @@ const HomePage = () => {
         setLongitude={setLongitude2}
         ref={mapRef}
       />
-      <Button fill onClick={handleRouteCalculation} style={{ margin: '1em' }}>
-        Route berechnen
-      </Button>
 
-      {/* Reverse Geocoding */}
-      <ReverseGeocoding
+    <ReverseGeocoding
         setAddressData={setAddressData}
         setLatitude={setLatitude}
         setLongitude={setLongitude}
@@ -99,12 +95,20 @@ const HomePage = () => {
         longitude2={longitude2}
       />
 
-      {/* Adresse */}
+      {/*
+      <Button fill onClick={handleRouteCalculation} style={{ margin: '1em' }}>
+        Route berechnen
+      </Button>
+
+     
+      
+
+      
       <Block strong>
         Straße: {addressData?.road || 'Warte auf Adresse...'}
       </Block>
 
-      {/* --- Fixiertes Panel unten --- */}
+      
       <div
         ref={panelRef}
         style={{
@@ -128,7 +132,7 @@ const HomePage = () => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Griff */}
+        
         <div
           onClick={isExpanded ? handleCollapse : undefined}
           style={{
@@ -141,7 +145,7 @@ const HomePage = () => {
           }}
         />
 
-        {/* Panel Inhalt */}
+        
         <div style={{
           flex: 1,
           overflowY: isExpanded ? 'auto' : 'hidden',
@@ -151,6 +155,7 @@ const HomePage = () => {
           <WikiFetcher query={addressData} />
         </div>
       </div>
+      */}
 
     </Page>
   );
