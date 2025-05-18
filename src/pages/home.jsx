@@ -19,6 +19,7 @@ const HomePage = () => {
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
   
+  // distance information of route
   const [routeDistance, setRouteDistance] = useState(null);
   const [straightLineDistance, setStraightLineDistance] = useState(null);
 
@@ -172,11 +173,13 @@ const HomePage = () => {
         <div style={{ display: 'flex', width: 'auto', justifyContent: 'space-between' }}>
         <div>
         {showCoordinates ? (
+          // display coordinates
           <div>
             <p style={{ flexShrink: 1, width: 'fit-content' }}>Start:<br />{latitude}<br />{longitude}</p>
             <p style={{ flexShrink: 1, width: 'fit-content' }}>Ziel:<br />{latitude2}<br />{longitude2}</p>
           </div>
         ) : (
+          // display distance information
           <div>
             <p>Luftlinie: {straightLineDistance ? `${straightLineDistance.toFixed(2)} km` : '–'}</p>
             <p>Route: {routeDistance !== null ? `${routeDistance.toFixed(2)} km` : '–'}</p>
