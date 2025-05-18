@@ -18,6 +18,10 @@ const HomePage = () => {
   // gps coordinates of user
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
+  
+  const [routeDistance, setRouteDistance] = useState(null);
+  const [straightLineDistance, setStraightLineDistance] = useState(null);
+
 
   // destination gps coordinates
   const [latitude2, setLatitude2] = useState(null);
@@ -96,7 +100,10 @@ const HomePage = () => {
         setLatitude={setLatitude2}
         setLongitude={setLongitude2}
         ref={mapRef}
+        setRouteDistance={setRouteDistance}
+        setStraightLineDistance={setStraightLineDistance}
       />
+
       <Button fill onClick={handleRouteCalculation} style={{ margin: '1em' }}>
         Route berechnen
       </Button>
@@ -166,15 +173,16 @@ const HomePage = () => {
         <div>
         {showCoordinates ? (
           <div>
-          <p style={{ flexShrink: 1, width: 'fit-content' }}>Start:<br/>{latitude}<br/>{longitude}</p>
-          <p style={{ flexShrink: 1, width: 'fit-content' }}>Ziel:<br/>{latitude2}<br/>{longitude2}</p>
+            <p style={{ flexShrink: 1, width: 'fit-content' }}>Start:<br />{latitude}<br />{longitude}</p>
+            <p style={{ flexShrink: 1, width: 'fit-content' }}>Ziel:<br />{latitude2}<br />{longitude2}</p>
           </div>
         ) : (
           <div>
-          <p>Luftlinie</p>
-          <p>Route</p>
+            <p>Luftlinie: {straightLineDistance ? `${straightLineDistance.toFixed(2)} km` : '–'}</p>
+            <p>Route: {routeDistance !== null ? `${routeDistance.toFixed(2)} km` : '–'}</p>
           </div>
         )}
+
         </div>
         <Button small style={{ width: '20vw', height: '10vw', float: 'right', backgroundColor: '#cce7ff',  
                                border: '2px solid #66a3e0', borderRadius: '10px',}} onClick={toggleContent}>
