@@ -4,7 +4,7 @@ import {
   Block,
   BlockTitle,
   Button,
-  Icon 
+  Icon
 } from 'framework7-react';
 
 import ReverseGeocoding from './reverseGeocoding';
@@ -37,8 +37,15 @@ const HomePage = () => {
     startY: null,
     startHeight: null,
   });
+  const mapRef = useRef();
 
   const MIN_HEIGHT = 120; // Panel Minimum
+
+  const handleRouteCalculation = () => {
+    if (mapRef.current) {
+      mapRef.current.calculateRoute(); 
+    }
+  };
 
   const handleTouchStart = (e) => {
     touchData.current.startY = e.touches[0].clientY;
@@ -88,7 +95,11 @@ const HomePage = () => {
         longitude={longitude}
         setLatitude={setLatitude2}
         setLongitude={setLongitude2}
+        ref={mapRef}
       />
+      <Button fill onClick={handleRouteCalculation} style={{ margin: '1em' }}>
+        Route berechnen
+      </Button>
 
       {/* Reverse Geocoding */}
       <ReverseGeocoding
