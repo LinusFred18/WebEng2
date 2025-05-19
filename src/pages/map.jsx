@@ -85,7 +85,7 @@ const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes }) => {
   );
 };
 
-const MapView = forwardRef(({latitude, longitude, setLatitude, setLongitude}, ref) => {
+const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, setRouteDistance, setStraightLineDistance }, ref) => {
   const [gpsPosition, setGpsPosition] = useState([47.666873, 9.444825]);
   const [markerPosition, setMarkerPosition] = useState([48.150901, 11.571602]);
   const [routeCoords, setRouteCoords] = useState([]);
@@ -156,23 +156,26 @@ const MapView = forwardRef(({latitude, longitude, setLatitude, setLongitude}, re
       const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
       setRouteCoords(coords);
 
-      const distanceInMeters = data.features[0].properties.summary.distance;
-      const distanceInKm = distanceInMeters / 1000;
-      console.log('KFZ-Strecke:', distanceInKm.toFixed(2), 'km');
+      const distanceInKm = data.features[0].properties.summary.distance / 1000;
+      setRouteCoords(coords);
+      setRouteDistance(distanceInKm);
+
+      
 
       // Luftlinie
-      setStraightLineCoords([gpsPosition, markerPosition]);
       const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
-      console.log('Luftlinie:', luftlinieKm.toFixed(2), 'km');
+      setStraightLineCoords([gpsPosition, markerPosition]);
+      setStraightLineDistance(luftlinieKm); 
 
     } catch (error) {
       console.error('Fehler beim Routenberechnen:', error.message);
       //alert('Keine KFZ-Route gefunden!');
 
       setRouteCoords([]);
-      setStraightLineCoords([gpsPosition, markerPosition]);
       const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
-      console.log('Nur Luftlinie:', luftlinieKm.toFixed(2), 'km');
+      setStraightLineCoords([gpsPosition, markerPosition]);
+      setRouteDistance(null); // keine Route
+      setStraightLineDistance(luftlinieKm);
     }
   }
 
@@ -221,7 +224,7 @@ const MapView = forwardRef(({latitude, longitude, setLatitude, setLongitude}, re
         maxHeight: '5rem',
         zIndex: 1000,
         pointerEvents: 'none',       // blockiert Maus-Events
-        userSelect: 'none',           // verhindert Text- oder Bildauswahl
+        userSelect: 'none',          // verhindert Text- oder Bildauswahl
       }}>
         <CompassSVG />
       </div>
