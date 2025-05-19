@@ -105,7 +105,7 @@ const HomePage = () => {
         setStraightLineDistance={setStraightLineDistance}
       />
 
-    <ReverseGeocoding
+      <ReverseGeocoding
         setAddressData={setAddressData}
         setLatitude={setLatitude}
         setLongitude={setLongitude}
@@ -170,7 +170,7 @@ const HomePage = () => {
           padding: '0 16px',
         }}>
 
-        {/* button to switch between contents to be shown */}
+
         <div>
         <BlockTitle>Hier Button</BlockTitle>
         <div style={{ display: 'flex', width: 'auto', justifyContent: 'space-between' }}>
