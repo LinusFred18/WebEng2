@@ -57,7 +57,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
   );
 };
 
-const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes, setGpsReady, calculateRoute }) => {
+const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes, setGpsReady, calculateRoute, destinationSelected, setDestinationSelected }) => {
   const { gpsLocation } = useGPSLocation();
   const markerRef = useRef(null);
 
@@ -76,7 +76,9 @@ const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes, setGpsRe
         setGpsPosition([newPos.lat, newPos.lng]);
         clearRoutes();
         setGpsReady(true);
-        calculateRoute(); // <-- Route neu berechnen nach Bewegung
+        if (!destinationSelected) {
+          setDestinationSelected(true);
+        }
       }
     },
   };
@@ -116,10 +118,11 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   }));
 
   useEffect(() => {
-    if (gpsReady && destinationSelected) {
+    if (destinationSelected) {
       calculateRoute();
     }
-  }, [markerPosition, gpsPosition, gpsReady, destinationSelected]);
+  }, [markerPosition, gpsPosition, destinationSelected]);
+  
 
   function calculateStraightLineDistance(pos1, pos2) {
     const toRad = (value) => (value * Math.PI) / 180;
@@ -188,6 +191,8 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           clearRoutes={clearRoutes}
           setGpsReady={setGpsReady}
           calculateRoute={calculateRoute}
+          destinationSelected={destinationSelected}
+          setDestinationSelected={setDestinationSelected}
         />
         <DraggableMarker
           setLatitude={setLatitude}
