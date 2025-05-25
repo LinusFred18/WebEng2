@@ -10,8 +10,11 @@ import {
 import ReverseGeocoding from './reverseGeocoding';
 import MapView from './map';
 import WikiFetcher from '../components/WikipediaAPI';
+import FadeInMenu from './fade-in-menu';
 //import coordinatesIcon from './icons/icons8-address-100.png';
 //import routeIcon from 'public/icons/icons8-address-100.png';
+
+
 
 const HomePage = () => {
   const [addressData, setAddressData] = useState(null);
@@ -112,6 +115,10 @@ const HomePage = () => {
         latitude2={latitude2}
         longitude2={longitude2}
       />
+
+      {/* Hamburger Menü */}
+      <FadeInMenu />
+
 
       {/*
       <Button fill onClick={handleRouteCalculation} style={{ margin: '1em' }}>
