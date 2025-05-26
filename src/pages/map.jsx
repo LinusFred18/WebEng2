@@ -7,7 +7,6 @@ import CompassSVG from '../components/compass';
 import LocationSearch from './locationSearch';
 import MapAutoFit from './mapAutofit';
 
-
 // Marker-Icons fixen
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -25,7 +24,7 @@ const redIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes, setDestinationSelected }) => {
+const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes, setDestinationSelected, onManualDrag }) => {
   const markerRef = useRef(null);
 
   const eventHandlers = {
@@ -38,6 +37,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
         setLatitude(newPos.lat);
         setLongitude(newPos.lng);
         setDestinationSelected(true);
+        if (onManualDrag) onManualDrag();
       }
     },
   };
@@ -106,9 +106,10 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   const [markerPosition, setMarkerPosition] = useState([48.150901, 11.571602]);
   const [routeCoords, setRouteCoords] = useState([]);
   const [straightLineCoords, setStraightLineCoords] = useState([]);
-
   const [gpsReady, setGpsReady] = useState(false);
   const [destinationSelected, setDestinationSelected] = useState(false);
+
+  const locationSearchRef = useRef();
 
   function clearRoutes() {
     setRouteCoords([]);
@@ -124,7 +125,6 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
       calculateRoute();
     }
   }, [markerPosition, gpsPosition, destinationSelected]);
-  
 
   function calculateStraightLineDistance(pos1, pos2) {
     const toRad = (value) => (value * Math.PI) / 180;
@@ -200,16 +200,25 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           setLatitude={setLatitude}
           setLongitude={setLongitude}
           position={markerPosition}
-          setPosition={setMarkerPosition}
+          setPosition={(pos) => {
+            setMarkerPosition(pos);
+            locationSearchRef.current?.clearSearchField(); // 🔁 Suchfeld leeren beim manuellen Verschieben
+          }}
           clearRoutes={clearRoutes}
           setDestinationSelected={setDestinationSelected}
+          onManualDrag={() => {
+            locationSearchRef.current?.clearSearchField();
+          }}
         />
-        <LocationSearch onSelect={({ lat, lon }) => {
-          setMarkerPosition([lat, lon]);
-          setLatitude(lat);
-          setLongitude(lon);
-          setDestinationSelected(true);
-        }} />
+        <LocationSearch
+          ref={locationSearchRef}
+          onSelect={({ lat, lon }) => {
+            setMarkerPosition([lat, lon]);
+            setLatitude(lat);
+            setLongitude(lon);
+            setDestinationSelected(true);
+          }}
+        />
         {routeCoords.length > 0 && <Polyline positions={routeCoords} color="blue" />}
         {straightLineCoords.length === 2 && <Polyline positions={straightLineCoords} color="red" dashArray="5,10" />}
         <MapAutoFit routeCoords={routeCoords} />
