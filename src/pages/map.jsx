@@ -5,6 +5,8 @@ import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 're
 import useGPSLocation from './gps';
 import CompassSVG from '../components/compass';
 import LocationSearch from './locationSearch';
+import MapAutoFit from './mapAutofit';
+
 
 // Marker-Icons fixen
 delete L.Icon.Default.prototype._getIconUrl;
@@ -210,6 +212,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
         }} />
         {routeCoords.length > 0 && <Polyline positions={routeCoords} color="blue" />}
         {straightLineCoords.length === 2 && <Polyline positions={straightLineCoords} color="red" dashArray="5,10" />}
+        <MapAutoFit routeCoords={routeCoords} />
       </MapContainer>
       <div style={{ position: 'absolute', bottom: '6%', left: '2%', aspectRatio: '1', maxWidth: '5rem', maxHeight: '5rem', zIndex: 1000, pointerEvents: 'none', userSelect: 'none' }}>
         <CompassSVG />
