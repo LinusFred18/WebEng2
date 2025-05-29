@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, Icon } from 'framework7-react';
 
-const FadeInMenu = () => {
+const FadeInMenu = ({mapRef}) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const containerRef = useRef(null);
 
@@ -64,8 +64,9 @@ const FadeInMenu = () => {
         <Button square small style={buttonStyle(0)} onClick={() => console.log('Button 1 gedrückt')}>
           <Icon f7="square" />
         </Button>
-        <Button square small style={buttonStyle(0.05)} onClick={() => console.log('Button 2 gedrückt')}>
-          <Icon f7="square_fill" />
+        {/* Reload current GPS position*/}
+        <Button square small style={buttonStyle(0.05)} onClick={() => mapRef?.current?.refreshGPS()}>
+          <Icon f7="map_pin_ellipse" />
         </Button>
         <Button square small style={buttonStyle(0.1)} onClick={() => console.log('Button 3 gedrückt')}>
           <Icon f7="star" />

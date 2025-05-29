@@ -117,7 +117,7 @@ const HomePage = () => {
       />
 
       {/* Hamburger Menü */}
-      <FadeInMenu />
+      <FadeInMenu mapRef={mapRef}/>
 
 
       {/*

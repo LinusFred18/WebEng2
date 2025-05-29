@@ -109,7 +109,8 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   }
 
   useImperativeHandle(ref, () => ({
-    calculateRoute
+    calculateRoute,
+    refreshGPS,
   }));
 
   // Hilfsfunktion: Luftlinien-Entfernung berechnen
@@ -185,6 +186,29 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
       setRouteDistance(null); // keine Route
       setStraightLineDistance(luftlinieKm);
     }
+  }
+
+  // reload gps data of user (for current position button)
+  function refreshGPS() {
+  if ('geolocation' in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setGpsPosition([latitude, longitude]);
+        console.log("GPS refreshed:", latitude, longitude);
+      },
+      (err) => {
+        console.error('Fehler beim Aktualisieren der GPS-Position:', err);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  } else {
+    console.error('Geolocation wird nicht unterstützt.');
+  }
   }
 
   useEffect(() => {
