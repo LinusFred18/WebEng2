@@ -171,6 +171,11 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     addBookmark,
     getBookmarks: () => bookmarks,
     goToBookmark,
+    deleteBookmark: (index) => {
+    const updated = bookmarks.filter((_, i) => i !== index);
+    setBookmarks(updated);
+    localStorage.setItem('bookmarks', JSON.stringify(updated));
+  },
   }));
 
   // Hilfsfunktion: Luftlinien-Entfernung berechnen

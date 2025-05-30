@@ -37,6 +37,15 @@ const FadeInMenu = ({mapRef}) => {
       }
     };
 
+    const deleteBookmark = (index) => {
+      if (mapRef?.current?.deleteBookmark) {
+        mapRef.current.deleteBookmark(index);
+        const updated = [...bookmarks];
+        updated.splice(index, 1);
+        setBookmarks(updated);
+      }
+    };
+
 
   const StyledButton = ({ icon, label, onClick, delay, menuOpen }) => {
   const containerStyle = {
@@ -102,7 +111,7 @@ const FadeInMenu = ({mapRef}) => {
           style={{
             position: 'absolute',
             bottom: '110px',
-            right: '0',
+            right: '130%',
             width: '200px',
             maxHeight: '300px',
             overflowY: 'auto',
@@ -119,19 +128,31 @@ const FadeInMenu = ({mapRef}) => {
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {bookmarks.map((bm, idx) => (
               <li
-                key={idx}
-                style={{
-                  padding: '6px 8px',
-                  borderBottom: '1px solid #eee',
-                  cursor: 'pointer',
-                }}
-                onClick={() => onBookmarkClick(idx)}
-              >
-                {bm.name} <br />
+              key={idx}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '6px 8px',
+                borderBottom: '1px solid #eee',
+              }}
+            >
+              <div onClick={() => onBookmarkClick(idx)} style={{ cursor: 'pointer' }}>
+                {bm.name}
+                <br />
                 <small style={{ color: '#666' }}>
                   {bm.lat.toFixed(5)}, {bm.lng.toFixed(5)}
                 </small>
-              </li>
+              </div>
+              <Button
+                small
+                clear
+                onClick={() => deleteBookmark(idx)}
+                style={{ marginLeft: '8px' }}
+              >
+                <Icon f7="trash" size={16} color="red" />
+              </Button>
+            </li>
             ))}
           </ul>
           <Button
@@ -177,7 +198,7 @@ const FadeInMenu = ({mapRef}) => {
           menuOpen={menuOpen}
           onClick={() => setShowBookmarks(true)}
         />
-        
+
         {/* Reload current GPS position*/}
         <StyledButton
           icon="map_pin_ellipse"
