@@ -1,9 +1,25 @@
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle,} from 'react';
+import { Icon } from 'framework7-react';
 import useGPSLocation from './gps';
 import CompassSVG from '../components/compass';
+
+const bookmarkButtonStyle = {
+  borderRadius: '50%',
+  width: '48px',
+  height: '48px',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  border: '1px solid #d0d0d0',
+  backgroundColor: '#fff',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+  padding: 0,
+  cursor: 'pointer',
+  marginTop: '8px',
+};
 
 // Standard-Marker-Icons fixen
 delete L.Icon.Default.prototype._getIconUrl;
@@ -21,7 +37,7 @@ const redIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes }) => {
+const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes, addBookmark }) => {
   //const [position, setPosition] = useState([48.150901, 11.571602]);
   const markerRef = useRef(null);
 
@@ -48,10 +64,26 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
       icon={redIcon}
     >
       <Popup>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         <b>Verschieb mich!</b><br />
         Latitude: {position[0]?.toFixed(6)}<br />
-        Longitude: {position[1]?.toFixed(6)}
-      </Popup>
+        Longitude: {position[1]?.toFixed(6)}<br />
+        <button 
+          onClick={() => addBookmark(position)}
+          style={{
+            ...bookmarkButtonStyle,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Icon f7="bookmark" size={20} color="blue" />
+        </button>
+        <div style={{ fontSize: '11px', color: '#1a73e8', marginTop: '4px', width: '100%' }}>
+          Zu Favoriten
+        </div>
+      </div>
+    </Popup>
     </Marker>
   );
 };
@@ -99,18 +131,46 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   const [routeCoords, setRouteCoords] = useState([]);
   const [straightLineCoords, setStraightLineCoords] = useState([]);
 
+  const [bookmarks, setBookmarks] = useState(() => {
+  const stored = localStorage.getItem('bookmarks');
+  return stored ? JSON.parse(stored) : [];
+  });
+
   const [lat, setLat] = useState(null);
   const [long, setLong] = useState(null);
-  console.log('Latitude:', latitude, 'Longitude:', longitude);
+  //console.log('Latitude:', latitude, 'Longitude:', longitude);
 
   function clearRoutes() {
     setRouteCoords([]);
     setStraightLineCoords([]);
   }
 
+  function addBookmark(pos) {
+    console.log('Favoriten position:', pos);
+    if (!pos) return;
+    const newBookmark = {
+      lat: pos[0],
+      lng: pos[1],
+      name: `Ort ${bookmarks.length + 1}`,
+    };
+    const updated = [...bookmarks, newBookmark];
+    setBookmarks(updated);
+    localStorage.setItem('bookmarks', JSON.stringify(updated));
+  }
+
+  function goToBookmark(index) {
+    const bm = bookmarks[index];
+    if (!bm) return;
+    const { lat, lng } = bm;
+    setMarkerPosition([lat, lng]);
+  }
+
   useImperativeHandle(ref, () => ({
     calculateRoute,
     refreshGPS,
+    addBookmark,
+    getBookmarks: () => bookmarks,
+    goToBookmark,
   }));
 
   // Hilfsfunktion: Luftlinien-Entfernung berechnen
@@ -229,7 +289,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <GPSDraggableMarker gpsPosition={gpsPosition} setGpsPosition={setGpsPosition} clearRoutes={clearRoutes} />
-        <DraggableMarker setLatitude={setLatitude} setLongitude={setLongitude} position={markerPosition} setPosition={setMarkerPosition} clearRoutes={clearRoutes} />
+        <DraggableMarker setLatitude={setLatitude} setLongitude={setLongitude} position={markerPosition} setPosition={setMarkerPosition} clearRoutes={clearRoutes} addBookmark={addBookmark}/>
 
         {/* KFZ-Route als blaue Linie */}
         {routeCoords.length > 0 && (

@@ -4,6 +4,8 @@ import { Button, Icon } from 'framework7-react';
 
 const FadeInMenu = ({mapRef}) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
+  const [bookmarks, setBookmarks] = useState([]);
   const containerRef = useRef(null);
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
@@ -19,6 +21,22 @@ const FadeInMenu = ({mapRef}) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuOpen]);*/}
+
+  useEffect(() => {
+    if (showBookmarks && mapRef?.current?.getBookmarks) {
+      const bms = mapRef.current.getBookmarks();
+      setBookmarks(bms || []);
+    }
+    }, [showBookmarks, mapRef]);
+
+    const onBookmarkClick = (index) => {
+      if (mapRef?.current?.goToBookmark) {
+        mapRef.current.goToBookmark(index);
+        setShowBookmarks(false);  // close bookmarks list after selecting
+        setMenuOpen(false);       // optionally close the menu
+      }
+    };
+
 
   const StyledButton = ({ icon, label, onClick, delay, menuOpen }) => {
   const containerStyle = {
@@ -78,7 +96,56 @@ const FadeInMenu = ({mapRef}) => {
         zIndex: 1000,
       }}
     >
-      {/* Menü */}
+      {/* Bookmarks list popup */}
+      {showBookmarks && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '110px',
+            right: '0',
+            width: '200px',
+            maxHeight: '300px',
+            overflowY: 'auto',
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            borderRadius: '10px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            zIndex: 1001,
+            padding: '8px',
+          }}
+        >
+          <b>Favoriten</b>
+          {bookmarks.length === 0 && <div>Keine Favoriten gespeichert.</div>}
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {bookmarks.map((bm, idx) => (
+              <li
+                key={idx}
+                style={{
+                  padding: '6px 8px',
+                  borderBottom: '1px solid #eee',
+                  cursor: 'pointer',
+                }}
+                onClick={() => onBookmarkClick(idx)}
+              >
+                {bm.name} <br />
+                <small style={{ color: '#666' }}>
+                  {bm.lat.toFixed(5)}, {bm.lng.toFixed(5)}
+                </small>
+              </li>
+            ))}
+          </ul>
+          <Button
+            fill
+            small
+            style={{ marginTop: '8px' }}
+            onClick={() => setShowBookmarks(false)}
+          >
+            Schließen
+          </Button>
+        </div>
+      )}
+
+      {/* Menu */}
       <div
       style={{
         display: 'flex',
@@ -108,8 +175,9 @@ const FadeInMenu = ({mapRef}) => {
           label="Favoriten"
           delay={0}
           menuOpen={menuOpen}
-          onClick={() => console.log('Button 1 gedrückt')}
+          onClick={() => setShowBookmarks(true)}
         />
+        
         {/* Reload current GPS position*/}
         <StyledButton
           icon="map_pin_ellipse"
