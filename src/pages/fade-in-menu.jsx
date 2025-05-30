@@ -8,7 +8,8 @@ const FadeInMenu = ({mapRef}) => {
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
-  useEffect(() => {
+  {/*menu closes also when clicking somewhere on the map*/}
+  {/*useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuOpen && containerRef.current && !containerRef.current.contains(event.target)) {
         setMenuOpen(false);
@@ -17,7 +18,7 @@ const FadeInMenu = ({mapRef}) => {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [menuOpen]);
+  }, [menuOpen]);*/}
 
   const StyledButton = ({ icon, label, onClick, delay, menuOpen }) => {
   const containerStyle = {
