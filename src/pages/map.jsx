@@ -150,36 +150,56 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
 
   async function calculateRoute() {
     const apiKey = '5b3ce3597851110001cf62485a5ab427aa2b4912b22184def3d18af0';
-    const url = 'https://api.openrouteservice.org/v2/directions/driving-car/geojson';
-    const body = {
-      coordinates: [
-        [gpsPosition[1], gpsPosition[0]],
-        [markerPosition[1], markerPosition[0]]
-      ]
-    };
-
-    try {
-      const response = await fetch(url, {
+    const urlBase = 'https://api.openrouteservice.org/v2/directions/';
+    const profiles = ['driving-car', 'cycling-regular', 'foot-walking'];
+  
+    const requests = profiles.map(profile => {
+      const url = `${urlBase}${profile}/geojson`;
+      const body = {
+        coordinates: [
+          [gpsPosition[1], gpsPosition[0]],
+          [markerPosition[1], markerPosition[0]]
+        ]
+      };
+      return fetch(url, {
         method: 'POST',
         headers: {
           'Authorization': apiKey,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
+      }).then(res => res.json().then(data => ({ profile, data, ok: res.ok })));
+    });
+  
+    try {
+      const results = await Promise.all(requests);
+  
+      results.forEach(({ profile, data, ok }) => {
+        if (!ok) {
+          console.warn(`Fehler bei Profil ${profile}:`, data.error?.message || 'Unbekannter Fehler');
+          return;
+        }
+        const distance = data.features[0].properties.summary.distance / 1000; // km
+        const duration = data.features[0].properties.summary.duration / 60;   // Minuten
+  
+        console.log(`Profil: ${profile}`);
+        console.log(`- Strecke: ${distance.toFixed(2)} km`);
+        console.log(`- Zeit: ${duration.toFixed(1)} Minuten`);
       });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error?.message || 'Fehler bei der Anfrage');
-
-      const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
-      const distanceInKm = data.features[0].properties.summary.distance / 1000;
-
-      setRouteCoords(coords);
-      setRouteDistance(distanceInKm);
-
+  
+      const autoRoute = results.find(r => r.profile === 'driving-car' && r.ok);
+      if (autoRoute) {
+        const coords = autoRoute.data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        const distanceInKm = autoRoute.data.features[0].properties.summary.distance / 1000;
+        setRouteCoords(coords);
+        setRouteDistance(distanceInKm);
+      }
+  
+      // Gerade Linie
       const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
       setStraightLineCoords([gpsPosition, markerPosition]);
       setStraightLineDistance(luftlinieKm);
+  
     } catch (error) {
       console.error('Fehler beim Routenberechnen:', error.message);
       setRouteCoords([]);
@@ -189,6 +209,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
       setStraightLineDistance(luftlinieKm);
     }
   }
+  
 
   return (
     <div style={{ position: 'relative', height: '100vh', width: '100%' }}>
