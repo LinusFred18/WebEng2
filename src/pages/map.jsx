@@ -30,7 +30,29 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
   const [wikipediaUrl, setWikipediaUrl] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const query = 'München'; // Optional: Dynamisch aus GPS oder Position ableiten
+  const query = "Friedrichshafen"; // Standardwert für die Abfrage, falls keine Position gesetzt ist	
+
+ useEffect(() => {
+    if (position[0] != null && position[1] != null) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position[0]}&lon=${position[1]}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.address) {
+            const query = data.address.city || data.address.town || data.address.village || data.address.suburb;
+            fetchWikiData(query);
+          } else {
+            console.error('Adresse nicht gefunden:', data);
+          }
+        })
+        .catch((err) => {
+          console.error('Fehler bei der Adressabfrage:', err);
+        });
+    }
+  }, [position]);
+
+
+
+
 
   const fetchWikiData = async (searchTerm) => {
     if (!searchTerm) return;
