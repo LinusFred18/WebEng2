@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
@@ -101,6 +101,16 @@ const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes, setGpsRe
   );
 };
 
+const MapClickHandler = ({ onClick }) => {
+  useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      onClick([lat, lng]);
+    },
+  });
+  return null;
+};
+
 const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, setRouteDistance, setStraightLineDistance }, ref) => {
   const [gpsPosition, setGpsPosition] = useState([47.666873, 9.444825]);
   const [markerPosition, setMarkerPosition] = useState([48.150901, 11.571602]);
@@ -189,6 +199,16 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
         zoomControl={false}
         style={{ height: '100vh', width: '100%' }}
       >
+        <MapClickHandler
+          onClick={(latlng) => {
+            setMarkerPosition(latlng);
+            setLatitude(latlng[0]);
+            setLongitude(latlng[1]);
+            setDestinationSelected(true);
+            locationSearchRef.current?.clearSearchField();
+            clearRoutes();
+          }}
+        />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -208,7 +228,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           position={markerPosition}
           setPosition={(pos) => {
             setMarkerPosition(pos);
-            locationSearchRef.current?.clearSearchField(); // 🔁 Suchfeld leeren beim manuellen Verschieben
+            locationSearchRef.current?.clearSearchField();
           }}
           clearRoutes={clearRoutes}
           setDestinationSelected={setDestinationSelected}
