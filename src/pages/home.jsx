@@ -9,6 +9,7 @@ import {
 
 import ReverseGeocoding from './reverseGeocoding';
 import MapView from './map';
+import HomeViewButton from './homeViewButton';
 import WikiFetcher from '../components/WikipediaAPI';
 //import coordinatesIcon from './icons/icons8-address-100.png';
 //import routeIcon from 'public/icons/icons8-address-100.png';
@@ -50,6 +51,10 @@ const HomePage = () => {
     if (mapRef.current) {
       mapRef.current.calculateRoute(); 
     }
+  };
+
+  const handleHomeViewClick = () => {
+    handleRouteCalculation();
   };
 
   const handleTouchStart = (e) => {
@@ -104,7 +109,7 @@ const HomePage = () => {
         setRouteDistance={setRouteDistance}
         setStraightLineDistance={setStraightLineDistance}
       />
-
+      <HomeViewButton onClick={handleHomeViewClick} />
       <ReverseGeocoding
         setAddressData={setAddressData}
         setLatitude={setLatitude}
