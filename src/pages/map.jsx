@@ -26,6 +26,34 @@ const redIcon = new L.Icon({
 
 const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes, setDestinationSelected, onManualDrag }) => {
   const markerRef = useRef(null);
+  const [wikipediaSnippet, setWikipediaSnippet] = useState('');
+  const [wikipediaUrl, setWikipediaUrl] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const query = 'München'; // Optional: Dynamisch aus GPS oder Position ableiten
+
+  const fetchWikiData = async (searchTerm) => {
+    if (!searchTerm) return;
+
+    const url = `https://de.wikipedia.org/w/api.php?origin=*&action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&format=json`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data?.query?.search?.length > 0) {
+        const item = data.query.search[0];
+        setWikipediaSnippet(item.snippet);
+        setWikipediaUrl(`https://de.wikipedia.org/?curid=${item.pageid}`);
+      }
+    } catch (err) {
+      console.error('Fehler beim Abrufen der Wikipedia-Daten:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchWikiData(query);
+  }, [query]);
 
   const eventHandlers = {
     dragend() {
@@ -50,14 +78,35 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
       ref={markerRef}
       icon={redIcon}
     >
-      <Popup>
-        <b>Verschieb mich!</b><br />
-        Latitude: {position[0]?.toFixed(6)}<br />
-        Longitude: {position[1]?.toFixed(6)}
+      <Popup maxWidth={250} 
+      height = {100}
+      width = {100}
+      >
+        <div>
+          <strong>Wikipedia-Auszug:</strong>
+          <p
+            dangerouslySetInnerHTML={{
+              __html: isExpanded
+                ? wikipediaSnippet
+                : `${wikipediaSnippet.slice(0, 100)}...`,
+            }}
+          />
+          <button onClick={() => setIsExpanded(!isExpanded)} style={{ marginTop: '0.5rem' }}>
+            {isExpanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+          </button>
+          {wikipediaUrl && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <a href={wikipediaUrl} target="_blank" rel="noopener noreferrer">
+                Zum Artikel
+              </a>
+            </div>
+          )}
+        </div>
       </Popup>
     </Marker>
   );
 };
+
 
 const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes, setGpsReady, calculateRoute, destinationSelected, setDestinationSelected }) => {
   const { gpsLocation } = useGPSLocation();
