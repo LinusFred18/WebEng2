@@ -37,9 +37,16 @@ const redIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes, addBookmark }) => {
+// draggable destination marker
+const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes, addBookmark, bookmarks,}) => {
   //const [position, setPosition] = useState([48.150901, 11.571602]);
   const markerRef = useRef(null);
+
+  const isBookmarked = bookmarks.some(
+    (bm) =>
+      Math.abs(bm.lat - position[0]) < 0.00001 &&
+      Math.abs(bm.lng - position[1]) < 0.00001
+  );
 
   const eventHandlers = {
     dragend() {
@@ -77,7 +84,12 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
             alignItems: 'center',
           }}
         >
-          <Icon f7="bookmark" size={20} color="blue" />
+          {/* filled bookmark if already saved and not filled if not saved*/}
+            <Icon
+              f7={isBookmarked ? 'bookmark_fill' : 'bookmark'}
+              size={20}
+              color={isBookmarked ? 'blue' : 'gray'}
+            />
         </button>
         <div style={{ fontSize: '11px', color: '#1a73e8', marginTop: '4px', width: '100%' }}>
           Zu Favoriten
@@ -88,6 +100,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
   );
 };
 
+// draggable start point (gps) marker
 const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes }) => {
   const { gpsLocation } = useGPSLocation();
   const markerRef = useRef(null);
@@ -145,9 +158,21 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     setStraightLineCoords([]);
   }
 
+  // add place to bookmark list if not duplicate
   function addBookmark(pos) {
     console.log('Favoriten position:', pos);
     if (!pos) return;
+    const isDuplicate = bookmarks.some(
+    (bm) =>
+      bm.lat.toFixed(5) === pos[0].toFixed(5) &&
+      bm.lng.toFixed(5) === pos[1].toFixed(5)
+  );
+
+  if (isDuplicate) {
+    //alert('Dieser Ort ist bereits als Favorit gespeichert.');
+    return;
+  }
+
     const newBookmark = {
       lat: pos[0],
       lng: pos[1],
@@ -294,7 +319,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <GPSDraggableMarker gpsPosition={gpsPosition} setGpsPosition={setGpsPosition} clearRoutes={clearRoutes} />
-        <DraggableMarker setLatitude={setLatitude} setLongitude={setLongitude} position={markerPosition} setPosition={setMarkerPosition} clearRoutes={clearRoutes} addBookmark={addBookmark}/>
+        <DraggableMarker setLatitude={setLatitude} setLongitude={setLongitude} position={markerPosition} setPosition={setMarkerPosition} clearRoutes={clearRoutes} addBookmark={addBookmark} bookmarks={bookmarks}/>
 
         {/* KFZ-Route als blaue Linie */}
         {routeCoords.length > 0 && (
