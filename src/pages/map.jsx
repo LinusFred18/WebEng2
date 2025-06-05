@@ -2,7 +2,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, } from 'react-leaflet
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle,} from 'react';
-import { Icon } from 'framework7-react';
+import { Icon, f7 } from 'framework7-react';
 import useGPSLocation from './gps';
 import CompassSVG from '../components/compass';
 
@@ -289,6 +289,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
       },
       (err) => {
         console.error('Fehler beim Aktualisieren der GPS-Position:', err);
+        f7.dialog.alert('Fehler beim Aktualisieren der GPS-Position');
       },
       {
         enableHighAccuracy: true,
@@ -298,6 +299,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     );
   } else {
     console.error('Geolocation wird nicht unterstützt.');
+    f7.dialog.alert('Geolocation wird nicht unterstützt.');
   }
   }
 
