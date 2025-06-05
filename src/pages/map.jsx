@@ -24,15 +24,17 @@ const redIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes, setDestinationSelected, onManualDrag }) => {
+const DraggableMarker = ({
+  setLatitude, setLongitude, position, setPosition, clearRoutes,
+  setDestinationSelected, onManualDrag, onExpandRequest
+}) => {
   const markerRef = useRef(null);
   const [wikipediaSnippet, setWikipediaSnippet] = useState('');
   const [wikipediaUrl, setWikipediaUrl] = useState('');
-  const [isExpanded, setIsExpanded] = useState(false);
-
+  
   const query = "Friedrichshafen"; // Standardwert für die Abfrage, falls keine Position gesetzt ist	
 
- useEffect(() => {
+  useEffect(() => {
     if (position[0] != null && position[1] != null) {
       fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position[0]}&lon=${position[1]}`)
         .then((res) => res.json())
@@ -49,10 +51,6 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
         });
     }
   }, [position]);
-
-
-
-
 
   const fetchWikiData = async (searchTerm) => {
     if (!searchTerm) return;
@@ -100,21 +98,23 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
       ref={markerRef}
       icon={redIcon}
     >
-      <Popup maxWidth={250} 
-      height = {100}
-      width = {100}
-      >
-        <div>
+      <Popup>
+        <div style={{ width: '250px' }}>
           <strong>Wikipedia-Auszug:</strong>
           <p
             dangerouslySetInnerHTML={{
-              __html: isExpanded
-                ? wikipediaSnippet
-                : `${wikipediaSnippet.slice(0, 100)}...`,
+              __html: `${wikipediaSnippet.slice(0, 100)}...`
             }}
           />
-          <button onClick={() => setIsExpanded(!isExpanded)} style={{ marginTop: '0.5rem' }}>
-            {isExpanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+          <button
+            onClick={() => onExpandRequest({
+              snippet: wikipediaSnippet,
+              url: wikipediaUrl,
+              position,
+            })}
+            style={{ marginTop: '0.5rem' }}
+          >
+            Mehr anzeigen
           </button>
           {wikipediaUrl && (
             <div style={{ marginTop: '0.5rem' }}>
@@ -130,7 +130,10 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
 };
 
 
-const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes, setGpsReady, calculateRoute, destinationSelected, setDestinationSelected }) => {
+const GPSDraggableMarker = ({
+  gpsPosition, setGpsPosition, clearRoutes, setGpsReady,
+  calculateRoute, destinationSelected, setDestinationSelected
+}) => {
   const { gpsLocation } = useGPSLocation();
   const markerRef = useRef(null);
 
@@ -179,6 +182,8 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   const [straightLineCoords, setStraightLineCoords] = useState([]);
   const [gpsReady, setGpsReady] = useState(false);
   const [destinationSelected, setDestinationSelected] = useState(false);
+
+  const [expandedInfo, setExpandedInfo] = useState(null); // Neu: Für das große Overlay
 
   const locationSearchRef = useRef();
 
@@ -251,6 +256,11 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     }
   }
 
+  // Overlay schließen
+  function closeOverlay() {
+    setExpandedInfo(null);
+  }
+
   return (
     <div style={{ position: 'relative', height: '100vh', width: '100%' }}>
       <MapContainer bounds={[markerPosition, gpsPosition]} zoom={13} scrollWheelZoom={true} style={{ height: '100vh', width: '100%' }}>
@@ -280,23 +290,64 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           onManualDrag={() => {
             locationSearchRef.current?.clearSearchField();
           }}
+          onExpandRequest={setExpandedInfo}
         />
-        <LocationSearch
-          ref={locationSearchRef}
-          onSelect={({ lat, lon }) => {
-            setMarkerPosition([lat, lon]);
-            setLatitude(lat);
-            setLongitude(lon);
-            setDestinationSelected(true);
-          }}
-        />
-        {routeCoords.length > 0 && <Polyline positions={routeCoords} color="blue" />}
-        {straightLineCoords.length === 2 && <Polyline positions={straightLineCoords} color="red" dashArray="5,10" />}
-        <MapAutoFit routeCoords={routeCoords} />
+        {routeCoords.length > 0 && (
+          <Polyline positions={routeCoords} color="blue" weight={4} />
+        )}
+        {straightLineCoords.length > 0 && (
+          <Polyline positions={straightLineCoords} color="green" dashArray="5, 10" />
+        )}
+        <MapAutoFit positions={[gpsPosition, markerPosition]} />
       </MapContainer>
-      <div style={{ position: 'absolute', bottom: '6%', left: '2%', aspectRatio: '1', maxWidth: '5rem', maxHeight: '5rem', zIndex: 1000, pointerEvents: 'none', userSelect: 'none' }}>
-        <CompassSVG />
-      </div>
+
+      <LocationSearch
+        ref={locationSearchRef}
+        setLatitude={setLatitude}
+        setLongitude={setLongitude}
+        clearRoutes={clearRoutes}
+        setDestinationSelected={setDestinationSelected}
+        setPosition={setMarkerPosition}
+      />
+      <CompassSVG position={markerPosition} />
+
+      {/* Großes Overlay für mehr Infos */}
+      {expandedInfo && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 10000,
+          padding: '1rem',
+          overflowY: 'auto',
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            width: '80vw',
+            height: '80vh',
+            padding: '2rem',
+            boxShadow: '0 0 15px rgba(0,0,0,0.3)',
+            overflowY: 'auto',
+          }}>
+            <h2>Wikipedia Auszug (Erweitert)</h2>
+            <div dangerouslySetInnerHTML={{ __html: expandedInfo.snippet }} />
+            {expandedInfo.url && (
+              <p>
+                <a href={expandedInfo.url} target="_blank" rel="noopener noreferrer">
+                  Zum Artikel auf Wikipedia
+                </a>
+              </p>
+            )}
+            <button onClick={closeOverlay} style={{ marginTop: '1rem' }}>
+              Schließen
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
