@@ -8,7 +8,15 @@ const FadeInMenu = ({mapRef}) => {
   const [bookmarks, setBookmarks] = useState([]);
   const containerRef = useRef(null);
 
-  const toggleMenu = () => setMenuOpen((prev) => !prev);
+  // opening and closing of menu
+  const toggleMenu = () => {setMenuOpen((prev) => 
+    {const newState = !prev;
+      if (!newState){
+        setShowBookmarks(false);
+      }
+      return newState;
+    });
+  };
 
   {/*menu closes also when clicking somewhere on the map*/}
   {/*useEffect(() => {
@@ -22,6 +30,7 @@ const FadeInMenu = ({mapRef}) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuOpen]);*/}
 
+  // show the current bookmarks list
   useEffect(() => {
     if (showBookmarks && mapRef?.current?.getBookmarks) {
       const bms = mapRef.current.getBookmarks();
@@ -32,11 +41,14 @@ const FadeInMenu = ({mapRef}) => {
     const onBookmarkClick = (index) => {
       if (mapRef?.current?.goToBookmark) {
         mapRef.current.goToBookmark(index);
-        setShowBookmarks(false);  // close bookmarks list after selecting
-        setMenuOpen(false);       // optionally close the menu
+        // close list after selection
+        //setShowBookmarks(false); 
+        // close menu after selection
+        //setMenuOpen(false);       
       }
     };
 
+    // deletion of bookmarks
     const deleteBookmark = (index) => {
       if (mapRef?.current?.deleteBookmark) {
         mapRef.current.deleteBookmark(index);
@@ -48,6 +60,7 @@ const FadeInMenu = ({mapRef}) => {
 
 
   const StyledButton = ({ icon, label, onClick, delay, menuOpen }) => {
+  // fade in menu style
   const containerStyle = {
     transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
     opacity: menuOpen ? 1 : 0,
@@ -59,6 +72,7 @@ const FadeInMenu = ({mapRef}) => {
     alignItems: 'center',
   };
 
+  // feature buttons style
   const iconButtonStyle = {
     borderRadius: '50%',
     width: '48px',
@@ -72,6 +86,7 @@ const FadeInMenu = ({mapRef}) => {
     padding: 0,
   };
 
+  // label text style under buttons
   const labelStyle = {
     fontSize: '11px',
     color: '#1a73e8',
