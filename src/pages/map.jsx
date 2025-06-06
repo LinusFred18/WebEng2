@@ -181,6 +181,11 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     const updated = [...bookmarks, newBookmark];
     setBookmarks(updated);
     localStorage.setItem('bookmarks', JSON.stringify(updated));
+
+    // event for updating bookmarks list
+    window.dispatchEvent(new CustomEvent('bookmarksUpdated', {
+    detail: updated
+  }));
   }
 
   function goToBookmark(index) {

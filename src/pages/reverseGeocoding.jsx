@@ -67,23 +67,7 @@ const GeoLocationWithReverse = ({ setAddressData, setLatitude, setLongitude, lat
           });
       }
     }
-  }, [gpsLocation, latitude2, longitude2]);
-  
-
-  return (
-    <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
-      <h2>Standortdaten</h2>
-
-      {geoError && <p style={{ color: 'red' }}>Fehler: {geoError}</p>}
-
-      {gpsLocation && (
-        <p>
-          Latitude: {gpsLocation.latitude} <br />
-          Longitude: {gpsLocation.longitude}
-        </p>
-      )}
-    </div>
-  );
+  }, [gpsLocation, latitude2, longitude2]);;
 };
 
 export default GeoLocationWithReverse;

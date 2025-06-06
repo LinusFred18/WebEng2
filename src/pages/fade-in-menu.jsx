@@ -38,6 +38,15 @@ const FadeInMenu = ({mapRef}) => {
     }
     }, [showBookmarks, mapRef]);
 
+  useEffect(() => {
+  const handleBookmarksUpdate = (e) => {
+    setBookmarks(e.detail || []);
+  };
+
+  window.addEventListener('bookmarksUpdated', handleBookmarksUpdate);
+  return () => window.removeEventListener('bookmarksUpdated', handleBookmarksUpdate);
+  }, []);
+
     const onBookmarkClick = (index) => {
       if (mapRef?.current?.goToBookmark) {
         mapRef.current.goToBookmark(index);
