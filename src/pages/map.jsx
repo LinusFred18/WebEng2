@@ -158,10 +158,10 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     setStraightLineCoords([]);
   }
 
-  // add place to bookmark list if not duplicate
-  function addBookmark(pos) {
-    console.log('Favoriten position:', pos);
+  // add a place to bookmark list
+  async function addBookmark(pos) {
     if (!pos) return;
+    // check if chosen place is duplicate
     const isDuplicate = bookmarks.some(
     (bm) =>
       bm.lat.toFixed(5) === pos[0].toFixed(5) &&
@@ -173,6 +173,47 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     return;
   }
 
+    // get name of the place to display in bookmarks list
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos[0]}&lon=${pos[1]}`);
+      const data = await response.json();
+
+    // get road and city name
+    const road = data.address?.road || '';
+    const city = data.address?.city || '';
+
+    // choose displayed name of the place depending on given information
+    let placeName = '';
+    if (road && city) {
+      placeName = `${road}, ${city}`;
+    } else if (road) {
+      placeName = road;
+    } else if (city) {
+      placeName = city;
+    } else if (data.address?.neighbourhood) {
+      placeName = data.address.neighbourhood;
+    } else if (data.address?.suburb) {
+      placeName = data.address.suburb;
+    } else if (data.display_name) {
+      placeName = data.display_name;
+    } else {
+      placeName = `Ort ${bookmarks.length + 1}`;
+    }
+
+    const newBookmark = {
+      lat: pos[0],
+      lng: pos[1],
+      name: placeName,
+    };
+
+    const updated = [...bookmarks, newBookmark];
+    setBookmarks(updated);
+    localStorage.setItem('bookmarks', JSON.stringify(updated));
+
+    // event for updating bookmarks list
+    window.dispatchEvent(new CustomEvent('bookmarksUpdated', { detail: updated }));
+  } // fallback if reverse geocoding has failed
+    catch (error) {
     const newBookmark = {
       lat: pos[0],
       lng: pos[1],
@@ -181,13 +222,10 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     const updated = [...bookmarks, newBookmark];
     setBookmarks(updated);
     localStorage.setItem('bookmarks', JSON.stringify(updated));
-
-    // event for updating bookmarks list
-    window.dispatchEvent(new CustomEvent('bookmarksUpdated', {
-    detail: updated
-  }));
+  }
   }
 
+  // set marker to bookmarked place
   function goToBookmark(index) {
     const bm = bookmarks[index];
     if (!bm) return;
