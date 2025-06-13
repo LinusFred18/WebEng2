@@ -148,7 +148,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
           )}
         </div>
       </Popup>
-      /*
+      {/*
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         <b>Verschieb mich!</b><br />
         Latitude: {position[0]?.toFixed(6)}<br />
@@ -162,7 +162,6 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
             alignItems: 'center',
           }}
         >
-          {/* filled bookmark if already saved and not filled if not saved*/}
             <Icon
               f7={isBookmarked ? 'bookmark_fill' : 'bookmark'}
               size={20}
@@ -174,7 +173,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
         </div>
       </div>
     </Popup>
-    */
+    */}
     </Marker>
   );
 };
