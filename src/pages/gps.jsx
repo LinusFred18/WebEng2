@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { f7 } from 'framework7-react';
 
 const useGPSLocation = () => {
   const [gpsLocation, setGPSPosition] = useState(null);
@@ -35,6 +36,7 @@ const useGPSLocation = () => {
       }
 
       setGeoError(errorMessage);
+      f7.dialog.alert(`${errorMessage}`);
     };
 
     if ('geolocation' in navigator) {

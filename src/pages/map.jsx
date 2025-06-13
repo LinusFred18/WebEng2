@@ -1,13 +1,31 @@
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle,} from 'react';
+import { Icon, f7 } from 'framework7-react';
 import useGPSLocation from './gps';
 import CompassSVG from '../components/compass';
 import LocationSearch from './locationSearch';
 import MapAutoFit from './mapAutofit';
 
-// Marker-Icons fixen
+
+const bookmarkButtonStyle = {
+  borderRadius: '50%',
+  width: '48px',
+  height: '48px',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  border: '1px solid #d0d0d0',
+  backgroundColor: '#fff',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+  padding: 0,
+  cursor: 'pointer',
+  marginTop: '8px',
+};
+
+// Standard-Marker-Icons fixen
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -24,10 +42,9 @@ const redIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-const DraggableMarker = ({
-  setLatitude, setLongitude, position, setPosition, clearRoutes,
-  setDestinationSelected, onManualDrag, onExpandRequest
-}) => {
+
+// draggable destination marker
+const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes, addBookmark, bookmarks, setDestinationSelected, onManualDrag, onExpandRequest}) => {
   const markerRef = useRef(null);
   const [wikipediaSnippet, setWikipediaSnippet] = useState('');
   const [wikipediaUrl, setWikipediaUrl] = useState('');
@@ -74,6 +91,12 @@ const DraggableMarker = ({
   useEffect(() => {
     fetchWikiData(query);
   }, [query]);
+
+  const isBookmarked = bookmarks.some(
+    (bm) =>
+      Math.abs(bm.lat - position[0]) < 0.00001 &&
+      Math.abs(bm.lng - position[1]) < 0.00001
+  );
 
   const eventHandlers = {
     dragend() {
@@ -125,15 +148,40 @@ const DraggableMarker = ({
           )}
         </div>
       </Popup>
+      /*
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+        <b>Verschieb mich!</b><br />
+        Latitude: {position[0]?.toFixed(6)}<br />
+        Longitude: {position[1]?.toFixed(6)}<br />
+        <button 
+          onClick={() => addBookmark(position)}
+          style={{
+            ...bookmarkButtonStyle,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          {/* filled bookmark if already saved and not filled if not saved*/}
+            <Icon
+              f7={isBookmarked ? 'bookmark_fill' : 'bookmark'}
+              size={20}
+              color={isBookmarked ? 'blue' : 'gray'}
+            />
+        </button>
+        <div style={{ fontSize: '11px', color: '#1a73e8', marginTop: '4px', width: '100%' }}>
+          Zu Favoriten
+        </div>
+      </div>
+    </Popup>
+    */
     </Marker>
   );
 };
 
 
-const GPSDraggableMarker = ({
-  gpsPosition, setGpsPosition, clearRoutes, setGpsReady,
-  calculateRoute, destinationSelected, setDestinationSelected
-}) => {
+// draggable start point (gps) marker
+const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes, setGpsReady, calculateRoute, destinationSelected, setDestinationSelected }) => {
   const { gpsLocation } = useGPSLocation();
   const markerRef = useRef(null);
 
@@ -175,6 +223,16 @@ const GPSDraggableMarker = ({
   );
 };
 
+const MapClickHandler = ({ onClick }) => {
+  useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      onClick([lat, lng]);
+    },
+  });
+  return null;
+};
+
 const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, setRouteDistance, setStraightLineDistance }, ref) => {
   const [gpsPosition, setGpsPosition] = useState([47.666873, 9.444825]);
   const [markerPosition, setMarkerPosition] = useState([48.150901, 11.571602]);
@@ -183,8 +241,17 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   const [gpsReady, setGpsReady] = useState(false);
   const [destinationSelected, setDestinationSelected] = useState(false);
 
+
   const [expandedInfo, setExpandedInfo] = useState(null); // Neu: Für das große Overlay
 
+  const [bookmarks, setBookmarks] = useState(() => {
+  const stored = localStorage.getItem('bookmarks');
+  return stored ? JSON.parse(stored) : [];
+  });
+
+  const [lat, setLat] = useState(null);
+  const [long, setLong] = useState(null);
+  //console.log('Latitude:', latitude, 'Longitude:', longitude);
   const locationSearchRef = useRef();
 
   function clearRoutes() {
@@ -192,8 +259,92 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     setStraightLineCoords([]);
   }
 
+  // add a place to bookmark list
+  async function addBookmark(pos) {
+    if (!pos) return;
+    // check if chosen place is duplicate
+    const isDuplicate = bookmarks.some(
+    (bm) =>
+      bm.lat.toFixed(5) === pos[0].toFixed(5) &&
+      bm.lng.toFixed(5) === pos[1].toFixed(5)
+  );
+
+  if (isDuplicate) {
+    //alert('Dieser Ort ist bereits als Favorit gespeichert.');
+    return;
+  }
+
+    // get name of the place to display in bookmarks list
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos[0]}&lon=${pos[1]}`);
+      const data = await response.json();
+
+    // get road and city name
+    const road = data.address?.road || '';
+    const city = data.address?.city || '';
+
+    // choose displayed name of the place depending on given information
+    let placeName = '';
+    if (road && city) {
+      placeName = `${road}, ${city}`;
+    } else if (road) {
+      placeName = road;
+    } else if (city) {
+      placeName = city;
+    } else if (data.address?.neighbourhood) {
+      placeName = data.address.neighbourhood;
+    } else if (data.address?.suburb) {
+      placeName = data.address.suburb;
+    } else if (data.display_name) {
+      placeName = data.display_name;
+    } else {
+      placeName = `Ort ${bookmarks.length + 1}`;
+    }
+
+    const newBookmark = {
+      lat: pos[0],
+      lng: pos[1],
+      name: placeName,
+    };
+
+    const updated = [...bookmarks, newBookmark];
+    setBookmarks(updated);
+    localStorage.setItem('bookmarks', JSON.stringify(updated));
+
+    // event for updating bookmarks list
+    window.dispatchEvent(new CustomEvent('bookmarksUpdated', { detail: updated }));
+  } // fallback if reverse geocoding has failed
+    catch (error) {
+    const newBookmark = {
+      lat: pos[0],
+      lng: pos[1],
+      name: `Ort ${bookmarks.length + 1}`,
+    };
+    const updated = [...bookmarks, newBookmark];
+    setBookmarks(updated);
+    localStorage.setItem('bookmarks', JSON.stringify(updated));
+  }
+  }
+
+  // set marker to bookmarked place
+  function goToBookmark(index) {
+    const bm = bookmarks[index];
+    if (!bm) return;
+    const { lat, lng } = bm;
+    setMarkerPosition([lat, lng]);
+  }
+
   useImperativeHandle(ref, () => ({
-    calculateRoute
+    calculateRoute,
+    refreshGPS,
+    addBookmark,
+    getBookmarks: () => bookmarks,
+    goToBookmark,
+    deleteBookmark: (index) => {
+    const updated = bookmarks.filter((_, i) => i !== index);
+    setBookmarks(updated);
+    localStorage.setItem('bookmarks', JSON.stringify(updated));
+  },
   }));
 
   useEffect(() => {
@@ -216,36 +367,56 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
 
   async function calculateRoute() {
     const apiKey = '5b3ce3597851110001cf62485a5ab427aa2b4912b22184def3d18af0';
-    const url = 'https://api.openrouteservice.org/v2/directions/driving-car/geojson';
-    const body = {
-      coordinates: [
-        [gpsPosition[1], gpsPosition[0]],
-        [markerPosition[1], markerPosition[0]]
-      ]
-    };
-
-    try {
-      const response = await fetch(url, {
+    const urlBase = 'https://api.openrouteservice.org/v2/directions/';
+    const profiles = ['driving-car', 'cycling-regular', 'foot-walking'];
+  
+    const requests = profiles.map(profile => {
+      const url = `${urlBase}${profile}/geojson`;
+      const body = {
+        coordinates: [
+          [gpsPosition[1], gpsPosition[0]],
+          [markerPosition[1], markerPosition[0]]
+        ]
+      };
+      return fetch(url, {
         method: 'POST',
         headers: {
           'Authorization': apiKey,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
+      }).then(res => res.json().then(data => ({ profile, data, ok: res.ok })));
+    });
+  
+    try {
+      const results = await Promise.all(requests);
+  
+      results.forEach(({ profile, data, ok }) => {
+        if (!ok) {
+          console.warn(`Fehler bei Profil ${profile}:`, data.error?.message || 'Unbekannter Fehler');
+          return;
+        }
+        const distance = data.features[0].properties.summary.distance / 1000; // km
+        const duration = data.features[0].properties.summary.duration / 60;   // Minuten
+  
+        console.log(`Profil: ${profile}`);
+        console.log(`- Strecke: ${distance.toFixed(2)} km`);
+        console.log(`- Zeit: ${duration.toFixed(1)} Minuten`);
       });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error?.message || 'Fehler bei der Anfrage');
-
-      const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
-      const distanceInKm = data.features[0].properties.summary.distance / 1000;
-
-      setRouteCoords(coords);
-      setRouteDistance(distanceInKm);
-
+  
+      const autoRoute = results.find(r => r.profile === 'driving-car' && r.ok);
+      if (autoRoute) {
+        const coords = autoRoute.data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        const distanceInKm = autoRoute.data.features[0].properties.summary.distance / 1000;
+        setRouteCoords(coords);
+        setRouteDistance(distanceInKm);
+      }
+  
+      // Gerade Linie
       const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
       setStraightLineCoords([gpsPosition, markerPosition]);
       setStraightLineDistance(luftlinieKm);
+  
     } catch (error) {
       console.error('Fehler beim Routenberechnen:', error.message);
       setRouteCoords([]);
@@ -260,14 +431,65 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   function closeOverlay() {
     setExpandedInfo(null);
   }
+  // reload gps data of user (for current position button)
+  function refreshGPS() {
+  if ('geolocation' in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setGpsPosition([latitude, longitude]);
+        console.log("GPS refreshed:", latitude, longitude);
+      },
+      (err) => {
+        console.error('Fehler beim Aktualisieren der GPS-Position:', err);
+        f7.dialog.alert('Fehler beim Aktualisieren der GPS-Position');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  } else {
+    console.error('Geolocation wird nicht unterstützt.');
+    f7.dialog.alert('Geolocation wird nicht unterstützt.');
+  }
+  }
+
+  useEffect(() => {
+    if (latitude) {
+      setLat(latitude);
+    }
+    if (longitude) {
+      setLong(longitude);
+    }
+  }, [latitude, longitude]); // <-- immer neu suchen, wenn sich die query ändert!
+
 
   return (
     <div style={{ position: 'relative', height: '100vh', width: '100%' }}>
-      <MapContainer bounds={[markerPosition, gpsPosition]} zoom={13} scrollWheelZoom={true} style={{ height: '100vh', width: '100%' }}>
+      <MapContainer
+        bounds={[markerPosition, gpsPosition]}
+        zoom={13}
+        scrollWheelZoom={true}
+        zoomControl={false}
+        style={{ height: '100vh', width: '100%' }}
+      >
+        <MapClickHandler
+          onClick={(latlng) => {
+            setMarkerPosition(latlng);
+            setLatitude(latlng[0]);
+            setLongitude(latlng[1]);
+            setDestinationSelected(true);
+            locationSearchRef.current?.clearSearchField();
+            clearRoutes();
+          }}
+        />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
         <GPSDraggableMarker
           gpsPosition={gpsPosition}
           setGpsPosition={setGpsPosition}
@@ -283,9 +505,11 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           position={markerPosition}
           setPosition={(pos) => {
             setMarkerPosition(pos);
-            locationSearchRef.current?.clearSearchField(); // 🔁 Suchfeld leeren beim manuellen Verschieben
+            locationSearchRef.current?.clearSearchField();
           }}
           clearRoutes={clearRoutes}
+          addBookmark={addBookmark}
+          bookmarks={bookmarks}
           setDestinationSelected={setDestinationSelected}
           onManualDrag={() => {
             locationSearchRef.current?.clearSearchField();
