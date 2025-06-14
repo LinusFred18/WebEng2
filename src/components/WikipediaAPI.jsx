@@ -7,7 +7,7 @@ import {
   Button
 } from 'framework7-react';
 
-const WikiFetcher = ({ query, onExpandRequest }) => {
+const WikiFetcher = ({ query }) => {
   const [wikipediaData, setWikipediaData] = useState([]);
 
   const fetchWikiData = async (searchTerm) => {
@@ -54,13 +54,7 @@ const WikiFetcher = ({ query, onExpandRequest }) => {
                   backgroundColor: '#1a73e8',
                   color: 'white'
                 }}
-                onClick={() =>
-                  onExpandRequest?.({
-                    snippet: item.snippet,
-                    url: item.url,
-                    position: index,
-                  })
-                }
+                onClick={() => window.open(item.url, '_blank')}
               >
                 Zum Artikel
               </Button>
