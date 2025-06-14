@@ -6,6 +6,7 @@ import useGPSLocation from './gps';
 import CompassSVG from '../components/compass';
 import LocationSearch from './locationSearch';
 import MapAutoFit from './mapAutofit';
+import { Button } from 'framework7-react';
 
 // Marker-Icons fixen
 delete L.Icon.Default.prototype._getIconUrl;
@@ -106,23 +107,22 @@ const DraggableMarker = ({
               __html: `${wikipediaSnippet.slice(0, 100)}...`
             }}
           />
-          <button
-            onClick={() => onExpandRequest({
-              snippet: wikipediaSnippet,
-              url: wikipediaUrl,
-              position,
-            })}
-            style={{ marginTop: '0.5rem' }}
-          >
-            Mehr anzeigen
-          </button>
-          {wikipediaUrl && (
-            <div style={{ marginTop: '0.5rem' }}>
-              <a href={wikipediaUrl} target="_blank" rel="noopener noreferrer">
-                Zum Artikel
-              </a>
-            </div>
-          )}
+          <Button
+          fill
+          small
+          style={{
+            marginTop: '8px',
+            backgroundColor: '#1a73e8',
+            color: 'white'
+          }}
+          onClick={() => onExpandRequest({
+            snippet: wikipediaSnippet,
+            url: wikipediaUrl,
+            position,
+          })}
+        >
+          Mehr anzeigen
+        </Button>
         </div>
       </Popup>
     </Marker>
@@ -332,7 +332,25 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
             padding: '2rem',
             boxShadow: '0 0 15px rgba(0,0,0,0.3)',
             overflowY: 'auto',
+            position: 'relative',
           }}>
+
+            <a
+      onClick={closeOverlay}
+      style={{
+        position: 'absolute',
+        top: '-0.4rem',
+        right: '0.25rem',
+        fontSize: '1.5rem',
+        fontWeight: 'bold',
+        color: '#333',
+        textDecoration: 'none',
+        cursor: 'pointer',
+      }}
+    >
+      ×
+</a>
+
             <h2>Wikipedia Auszug (Erweitert)</h2>
             <div dangerouslySetInnerHTML={{ __html: expandedInfo.snippet }} />
             {expandedInfo.url && (
@@ -342,9 +360,6 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
                 </a>
               </p>
             )}
-            <button onClick={closeOverlay} style={{ marginTop: '1rem' }}>
-              Schließen
-            </button>
           </div>
         </div>
       )}
