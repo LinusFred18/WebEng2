@@ -7,6 +7,9 @@ import CompassSVG from '../components/compass';
 import LocationSearch from './locationSearch';
 import MapAutoFit from './mapAutofit';
 import { Button } from 'framework7-react';
+import WikiFetcher from '../components/WikipediaAPI';  
+
+
 
 // Marker-Icons fixen
 delete L.Icon.Default.prototype._getIconUrl;
@@ -32,6 +35,7 @@ const DraggableMarker = ({
   const markerRef = useRef(null);
   const [wikipediaSnippet, setWikipediaSnippet] = useState('');
   const [wikipediaUrl, setWikipediaUrl] = useState('');
+  const [locationX, setLocationX] = useState('');
   
   const query = "Friedrichshafen"; // Standardwert für die Abfrage, falls keine Position gesetzt ist	
 
@@ -55,7 +59,7 @@ const DraggableMarker = ({
 
   const fetchWikiData = async (searchTerm) => {
     if (!searchTerm) return;
-
+    const address2 = searchTerm;
     const url = `https://de.wikipedia.org/w/api.php?origin=*&action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&format=json`;
 
     try {
@@ -65,6 +69,7 @@ const DraggableMarker = ({
       if (data?.query?.search?.length > 0) {
         const item = data.query.search[0];
         setWikipediaSnippet(item.snippet);
+        setLocationX(item.title);
         setWikipediaUrl(`https://de.wikipedia.org/?curid=${item.pageid}`);
       }
     } catch (err) {
@@ -118,6 +123,7 @@ const DraggableMarker = ({
           onClick={() => onExpandRequest({
             snippet: wikipediaSnippet,
             url: wikipediaUrl,
+            title: locationX,
             position,
           })}
         >
@@ -184,7 +190,6 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   const [destinationSelected, setDestinationSelected] = useState(false);
 
   const [expandedInfo, setExpandedInfo] = useState(null); // Neu: Für das große Overlay
-
   const locationSearchRef = useRef();
 
   function clearRoutes() {
@@ -310,7 +315,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
         setPosition={setMarkerPosition}
       />
       <CompassSVG position={markerPosition} />
-
+      
       {/* Großes Overlay für mehr Infos */}
       {expandedInfo && (
         <div style={{
@@ -322,7 +327,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           alignItems: 'center',
           zIndex: 10000,
           padding: '1rem',
-          overflowY: 'auto',
+         // overflowY: 'auto',
         }}>
           <div style={{
             backgroundColor: 'white',
@@ -331,8 +336,9 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
             height: '80vh',
             padding: '2rem',
             boxShadow: '0 0 15px rgba(0,0,0,0.3)',
-            overflowY: 'auto',
             position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
           }}>
 
             <a
@@ -352,14 +358,13 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
 </a>
 
             <h2>Wikipedia Auszug (Erweitert)</h2>
-            <div dangerouslySetInnerHTML={{ __html: expandedInfo.snippet }} />
-            {expandedInfo.url && (
-              <p>
-                <a href={expandedInfo.url} target="_blank" rel="noopener noreferrer">
-                  Zum Artikel auf Wikipedia
-                </a>
-              </p>
-            )}
+            <div style={{
+            overflowY: 'auto',
+            flex: 1,
+            marginTop: '1rem',
+            }}>
+            <WikiFetcher query={expandedInfo.title} />
+            </div>
           </div>
         </div>
       )}

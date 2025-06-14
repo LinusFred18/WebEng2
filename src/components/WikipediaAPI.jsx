@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Block,
+  Button
+} from 'framework7-react';
 
-const WikiFetcher = ({ query }) => {
+const WikiFetcher = ({ query, onExpandRequest }) => {
   const [wikipediaData, setWikipediaData] = useState([]);
 
   const fetchWikiData = async (searchTerm) => {
-    if (!searchTerm) return; // Falls query noch leer ist, nichts machen
+    if (!searchTerm) return;
 
     const url = `https://de.wikipedia.org/w/api.php?origin=*&action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&format=json`;
 
@@ -26,29 +33,44 @@ const WikiFetcher = ({ query }) => {
   };
 
   useEffect(() => {
-    fetchWikiData(query); 
-  }, [query]); // <-- immer neu suchen, wenn sich die query ändert!
+    fetchWikiData(query || 'München');
+  }, [query]);
 
-  if (query == null){
-    query = "München"
-  }
   return (
-    <div>
-      <h1>Wikipedia-Ergebnisse für „{query}“</h1>
+    <Block strong inset>
+      <h2 className="text-align-center">Wikipedia-Ergebnisse für „{query || 'München'}“</h2>
+
       {wikipediaData.length > 0 ? (
         wikipediaData.map((item, index) => (
-          <div key={index} style={{ marginBottom: '2rem' }}>
-            <h2>{item.title}</h2>
-            <p dangerouslySetInnerHTML={{ __html: item.snippet }} />
-            <a href={item.url} target="_blank" rel="noopener noreferrer">
-              Zum Artikel
-            </a>
-          </div>
+          <Card key={index} className="margin-bottom">
+            <CardHeader>{item.title}</CardHeader>
+            <CardContent>
+              <div dangerouslySetInnerHTML={{ __html: item.snippet }} />
+              <Button
+                fill
+                small
+                style={{
+                  marginTop: '8px',
+                  backgroundColor: '#1a73e8',
+                  color: 'white'
+                }}
+                onClick={() =>
+                  onExpandRequest?.({
+                    snippet: item.snippet,
+                    url: item.url,
+                    position: index,
+                  })
+                }
+              >
+                Zum Artikel
+              </Button>
+            </CardContent>
+          </Card>
         ))
       ) : (
-        <p>Keine Ergebnisse gefunden.</p>
+        <Block className="text-align-center">Keine Ergebnisse gefunden.</Block>
       )}
-    </div>
+    </Block>
   );
 };
 
