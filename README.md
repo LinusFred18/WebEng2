@@ -76,13 +76,3 @@ framework7 assets --ui
 Love Framework7? Support project by donating or pledging on:
 - Patreon: https://patreon.com/framework7
 - OpenCollective: https://opencollective.com/framework7
-
-## Docker
-
-build the docker image with the following command:
-docker build -t gockelmaps .
-
-run the docker container with the following command:
-docker container run -p 9099:80 --name gockelmapscontainer gockelmaps
-
-app runs on: http://localhost:9099/
