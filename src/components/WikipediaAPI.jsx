@@ -38,14 +38,17 @@ const WikiFetcher = ({ query }) => {
 
   return (
     <Block strong inset>
-      <h2 className="text-align-center">Wikipedia-Ergebnisse für „{query || 'München'}“</h2>
+      {/*<h1 className="text-align-center">Wikipedia-Ergebnisse für „{query || 'München'}“</h1>*/}
 
       {wikipediaData.length > 0 ? (
         wikipediaData.map((item, index) => (
           <Card key={index} className="margin-bottom">
             <CardHeader>{item.title}</CardHeader>
             <CardContent>
-              <div dangerouslySetInnerHTML={{ __html: item.snippet }} />
+              <div>
+                <span dangerouslySetInnerHTML={{ __html: item.snippet }} />
+                <span>...</span>
+              </div>
               <Button
                 fill
                 small

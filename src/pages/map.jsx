@@ -106,10 +106,10 @@ const DraggableMarker = ({
     >
       <Popup>
         <div style={{ width: '250px' }}>
-          <strong>Wikipedia-Auszug:</strong>
+          <strong>Wikipedia-Auszug: {locationX}</strong>
           <p
             dangerouslySetInnerHTML={{
-              __html: `${wikipediaSnippet.slice(0, 100)}...`
+              __html: `${wikipediaSnippet.slice(0, 1000)}...`
             }}
           />
           <Button
@@ -356,8 +356,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     >
       ×
 </a>
-
-            <h2>Wikipedia Auszug (Erweitert)</h2>
+      <h1 className="text-align-center">Wikipedia-Ergebnisse für „{expandedInfo.title}“</h1>
             <div style={{
             overflowY: 'auto',
             flex: 1,
