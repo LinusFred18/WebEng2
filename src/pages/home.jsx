@@ -122,7 +122,10 @@ const HomePage = () => {
         longitude2={longitude2}
       />
       
-      <TravelTime travelTimes={travelTimes} />
+      <TravelTime 
+      travelTimes={travelTimes}
+      routeDistance={routeDistance}
+      straightLineDistance={straightLineDistance} />
 
       {/*
       <Button fill onClick={handleRouteCalculation} style={{ margin: '1em' }}>

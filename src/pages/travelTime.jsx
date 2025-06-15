@@ -11,7 +11,7 @@ const formatTime = (minutes) => {
 };
 
 // displayed text and icon per means of transport
-const TravelTime = ({ travelTimes, activeMode = null }) => {
+const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMode = null }) => {
   const modes = [
     { key: 'car', label: 'Auto', icon: <FaCar /> },
     { key: 'walk', label: 'Zu Fuß', icon: <FaWalking /> },
@@ -31,7 +31,7 @@ const TravelTime = ({ travelTimes, activeMode = null }) => {
         borderRadius: '12px',
         padding: '0.5rem 1rem',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        backgroundColor: 'white',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
         transition: 'all 0.3s ease',
       }}
     >
@@ -73,6 +73,37 @@ const TravelTime = ({ travelTimes, activeMode = null }) => {
         })}
       </CardContent>
 
+      {/* divider line */}
+      <div
+        style={{
+          width: '90%',
+          height: '1px',
+          backgroundColor: '#ccc',
+          margin: '0.6rem auto 0.6rem auto',
+        }}
+      />
+
+      {/* distance information */}
+      <div
+          className="distance-info"
+          style={{
+            width: '100%',
+            fontSize: '0.9rem',
+            color: '#555',
+            textAlign: 'left',
+            marginTop: '0.5rem',
+          }}
+        >
+          <span style={{ color: 'blue' }}>
+          <div>Route: {routeDistance?.toFixed(2) ?? '-'} km</div>
+          </span>
+          <div>
+            <span style={{ color: 'red' }}>
+            Luftlinie: {straightLineDistance?.toFixed(2) ?? '-'} km
+            </span>
+          </div>
+        </div>
+
       <style jsx>{`
         @media (max-width: 400px) {
           .travel-card {
@@ -85,11 +116,13 @@ const TravelTime = ({ travelTimes, activeMode = null }) => {
           .travel-card-content {
             flex-direction: column;
             align-items: center;
-            gap: 0.8rem;
+            gap: 0.01rem;
+            padding-top: 0.1rem;
+            padding-bottom: 0.1rem;
           }
 
           .mode-item {
-            padding: 0.15rem 0.4rem !important;
+            padding: 0.05rem 0.4rem !important;
             font-size: 0.7rem !important;
             min-width: auto !important;
             align-items: center !important;
@@ -102,6 +135,17 @@ const TravelTime = ({ travelTimes, activeMode = null }) => {
 
           .mode-item .time {
             margin-top: 0.1rem !important;
+            margin-bottom: 0 !important;
+          }
+        }
+          @media (max-width: 400px) {
+          .travel-card-content div {
+            font-size: 0.7rem !important;
+          }
+        }
+          @media (max-width: 400px) {
+          .distance-info {
+            font-size: 0.7rem !important;
           }
         }
       `}</style>
