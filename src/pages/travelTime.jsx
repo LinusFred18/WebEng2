@@ -104,7 +104,7 @@ const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMo
           </div>
         </div>
 
-      <style jsx>{`
+      <style >{`
         @media (max-width: 400px) {
           .travel-card {
             width: 55%;
