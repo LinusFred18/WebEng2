@@ -519,20 +519,23 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           <Polyline positions={routeCoords} color="blue" weight={4} />
         )}
         {straightLineCoords.length > 0 && (
-          <Polyline positions={straightLineCoords} color="green" dashArray="5, 10" />
+          <Polyline positions={straightLineCoords} color="red" dashArray="5, 10" />
         )}
-        <MapAutoFit positions={[gpsPosition, markerPosition]} />
+        <MapAutoFit routeCoords={routeCoords} />
       </MapContainer>
 
       <LocationSearch
-        ref={locationSearchRef}
-        setLatitude={setLatitude}
-        setLongitude={setLongitude}
-        clearRoutes={clearRoutes}
-        setDestinationSelected={setDestinationSelected}
-        setPosition={setMarkerPosition}
-      />
-      <CompassSVG position={markerPosition} />
+          ref={locationSearchRef}
+          onSelect={({ lat, lon }) => {
+            setMarkerPosition([lat, lon]);
+            setLatitude(lat);
+            setLongitude(lon);
+            setDestinationSelected(true);
+          }}
+        />
+      <div style={{ position: 'absolute', bottom: '6%', left: '2%', aspectRatio: '1', maxWidth: '5rem', maxHeight: '5rem', zIndex: 1000, pointerEvents: 'none', userSelect: 'none' }}>
+        <CompassSVG />
+      </div>
 
       {/* Großes Overlay für mehr Infos */}
       {expandedInfo && (
