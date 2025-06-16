@@ -1,5 +1,6 @@
 import { Card, CardContent } from 'framework7-react';
 import { FaCar, FaWalking, FaBicycle } from 'react-icons/fa';
+import { useState, useRef } from 'react';
 
 // format displayed time 
 const formatTime = (minutes) => {
@@ -12,6 +13,9 @@ const formatTime = (minutes) => {
 
 // displayed text and icon per means of transport
 const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMode = null }) => {
+  const [open, setOpen] = useState(false);
+  const contentRef = useRef(null);
+
   const modes = [
     { key: 'car', label: 'Auto', icon: <FaCar /> },
     { key: 'walk', label: 'Zu Fuß', icon: <FaWalking /> },
@@ -22,100 +26,133 @@ const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMo
     <Card
       className="travel-card"
       style={{
-        position: 'absolute',
-        top: '5rem',
-        left: '1.5rem',
-        zIndex: 1000,
-        width: 'auto',
-        maxWidth: '360px',
+        position: 'relative',
+        width: '15%',
+        margin: '0rem 1rem 0rem 0rem',
+        height: 'fit-content',
         borderRadius: '12px',
-        padding: '0.5rem 1rem',
+        padding: '0.2rem 0.5rem',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         transition: 'all 0.3s ease',
       }}
     >
-      <CardContent
-        className="travel-card-content"
+
+      {/* Header mit Button zum Ein-/Ausklappen */}
+      <div 
+        onClick={() => setOpen((prev) => !prev)} 
         style={{
-          display: 'flex',
-          gap: '1.5rem',
-          alignItems: 'center',
-          padding: 0,
+          width: '100%',
+          cursor:'pointer',
+          padding:'0.5rem 0rem',
+          fontWeight:'bold',
+          color:'#1a73e8',
+          pointerEvents: 'auto',
+          userSelect: 'auto',
+          transform: open
+          ? 'rotate(180deg)'
+          : 'rotate(0deg)',
           transition: 'all 0.3s ease',
         }}
       >
-        {modes.map(({key, icon}) => {
-          const isActive = activeMode === key;
-          const time = key === 'public' ? '-' : formatTime(travelTimes[key]);
-          return (
-            <div
-              key={key}
-              className="mode-item"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: isActive ? '#1a73e8' : '#333',
-                backgroundColor: isActive ? '#e8f0fe' : 'transparent',
-                padding: '0.3rem 0.5rem',
-                borderRadius: '8px',
-                fontSize: '0.8rem',
-                minWidth: '3rem',
-                transition: 'all 0.3s ease',
-              }}
-            >
-              <div className="icon" style={{fontSize: '1.2rem'}}>{icon}</div>
-              <div className="time" style={{marginTop: '0.2rem'}}>{time}</div>
-            </div>
-          );
-        })}
-      </CardContent>
+        <i className={`f7-icons`}>
+          {'chevron_up'}
+        </i>
+      </div>
 
-      {/* divider line */}
-      <div
-        style={{
-          width: '90%',
-          height: '1px',
-          backgroundColor: '#ccc',
-          margin: '0.6rem auto 0.6rem auto',
-        }}
-      />
+      {/* Inhalt wird ausgeklappt, wenn `open` true ist */}
+        <div ref={contentRef} style={{
+          maxHeight: open ? `${contentRef.current?.scrollHeight}px` : '0px',
+          overflow: 'hidden',
+          transition:'max-height 0.5s ease'
+        }}>
+          <CardContent
+            className="travel-card-content"
+            style={{
+              width: '100%',
+              display: 'flex',
+              gap: '0.2rem',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              flexWrap:'wrap',
+              padding: 0,
+              transition: 'all 0.3s ease',
+            }}
+          >
+            {modes.map(({key, icon}) => {
+              const isActive = activeMode === key;
+              const time = key === 'public' ? '-' : formatTime(travelTimes[key]);
+              return (
+                <div
+                  key={key}
+                  className="mode-item"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isActive ? '#1a73e8' : '#333',
+                    backgroundColor: isActive ? '#e8f0fe' : 'transparent',
+                    padding: '0.2rem 0.2rem',
+                    borderRadius: '8px',
+                    fontSize: '0.7rem',
+                    minWidth: '3rem',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  <div className="icon" style={{fontSize: '1.2rem'}}>{icon}</div>
+                  <div className="time" style={{marginTop: '0.2rem'}}>{time}</div>
+                </div>
+              );
+            })}
+          </CardContent>
 
-      {/* distance information */}
-      <div
-          className="distance-info"
-          style={{
-            width: '100%',
-            fontSize: '0.9rem',
-            color: '#555',
-            textAlign: 'left',
-            marginTop: '0.5rem',
-          }}
-        >
-          <span style={{ color: 'blue' }}>
-          <div>Route: {routeDistance?.toFixed(2) ?? '-'} km</div>
-          </span>
-          <div>
+          {/* divider line */}
+          <div
+            style={{
+              width: '90%',
+              height: '1px',
+              backgroundColor: '#ccc',
+              margin: '0.3rem auto 0.3rem auto',
+            }}
+          />
+
+          {/* distance information */}
+          <div
+            className="distance-info"
+            style={{
+              width: '90%',
+              fontSize: '0.8rem',
+              color: '#555',
+              textAlign: 'left',
+              padding: '0rem 0rem 0.5rem 0.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}
+          >
+            <span style={{ color: 'blue' }}>
+              <b>Route:</b> {routeDistance?.toFixed(2) ?? '-'} km
+            </span>
             <span style={{ color: 'red' }}>
-            Luftlinie: {straightLineDistance?.toFixed(2) ?? '-'} km
+              <b>Luftlinie:</b> {straightLineDistance?.toFixed(2) ?? '-'} km
             </span>
           </div>
         </div>
+      
 
       <style >{`
-        @media (max-width: 400px) {
+        @media (max-width: 800px) {
           .travel-card {
             width: 55%;
             max-width: 220px;
-            padding: 0.3rem 0.6rem !important;
-            left: 1.5rem;
+            padding: 0.2rem 0.2rem !important;
+            margin: '0rem 1rem 0rem 0rem';
           }
 
           .travel-card-content {
             flex-direction: column;
-            align-items: center;
+            align-items: center !important;
             gap: 0.01rem;
             padding-top: 0.1rem;
             padding-bottom: 0.1rem;

@@ -72,16 +72,16 @@ const LocationSearch = forwardRef(({ onSelect }, ref) => {
 
   return (
     <div style={{
-      position: 'absolute',
-      top: '10px',
-      left: '50%',
-      transform: 'translateX(-50%)',
+      position: 'relative',
+      width: '85%',
+      height: 'fit-content',
       zIndex: 1001,
-      width: '80%',
       backgroundColor: 'white',
       borderRadius: '8px',
       boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-      padding: '0.5rem'
+      padding: '0.5rem',
+      pointerEvents: 'auto',
+      userSelect: 'auto',
     }}>
       <input
         ref={inputRef}
@@ -100,7 +100,7 @@ const LocationSearch = forwardRef(({ onSelect }, ref) => {
           width: '100%',
           padding: '0.5rem',
           borderRadius: '4px',
-          border: '1px solid #ccc'
+          border: '1px solid #ccc',
         }}
       />
       {suggestions.length > 0 && (
