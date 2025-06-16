@@ -234,7 +234,7 @@ const MapClickHandler = ({ onClick }) => {
   return null;
 };
 
-const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, setRouteDistance, setStraightLineDistance }, ref) => {
+const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, setRouteDistance, setStraightLineDistance, setTravelTimes}, ref) => {
   const [gpsPosition, setGpsPosition] = useState([47.666873, 9.444825]);
   const [markerPosition, setMarkerPosition] = useState([48.150901, 11.571602]);
   const [routeCoords, setRouteCoords] = useState([]);
@@ -392,18 +392,29 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     try {
       const results = await Promise.all(requests);
   
+      const times = {};
+
       results.forEach(({ profile, data, ok }) => {
-        if (!ok) {
-          console.warn(`Fehler bei Profil ${profile}:`, data.error?.message || 'Unbekannter Fehler');
+        if (!ok || !data?.features?.length) {
+          console.warn(`Fehler bei Profil ${profile}`);
           return;
         }
-        const distance = data.features[0].properties.summary.distance / 1000; // km
-        const duration = data.features[0].properties.summary.duration / 60;   // Minuten
-  
-        console.log(`Profil: ${profile}`);
-        console.log(`- Strecke: ${distance.toFixed(2)} km`);
-        console.log(`- Zeit: ${duration.toFixed(1)} Minuten`);
+
+        // extract time in minutes for each means of transport
+        const duration = data.features[0].properties.summary.duration / 60; 
+        if (profile === 'driving-car') times.car = duration;
+        if (profile === 'cycling-regular') times.bike = duration;
+        if (profile === 'foot-walking') times.walk = duration;
+
+        if (profile === 'driving-car') {
+          const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+          const distanceInKm = data.features[0].properties.summary.distance / 1000;
+          setRouteCoords(coords);
+          setRouteDistance(distanceInKm);
+        }
       });
+
+      setTravelTimes(times);
   
       const autoRoute = results.find(r => r.profile === 'driving-car' && r.ok);
       if (autoRoute) {
@@ -413,7 +424,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
         setRouteDistance(distanceInKm);
       }
   
-      // Gerade Linie
+      // straight line
       const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
       setStraightLineCoords([gpsPosition, markerPosition]);
       setStraightLineDistance(luftlinieKm);
