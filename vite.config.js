@@ -31,6 +31,10 @@ export default async () => {
     },
     server: {
       host: true,
+      cors: true, 
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      }
     },
 
   };
