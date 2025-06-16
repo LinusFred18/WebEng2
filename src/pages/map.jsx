@@ -7,6 +7,8 @@ import useGPSLocation from './gps';
 import CompassSVG from '../components/compass';
 import LocationSearch from './locationSearch';
 import MapAutoFit from './mapAutofit';
+import { Button } from 'framework7-react';
+import WikiFetcher from '../components/WikipediaAPI';  
 
 
 const bookmarkButtonStyle = {
@@ -48,6 +50,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
   const markerRef = useRef(null);
   const [wikipediaSnippet, setWikipediaSnippet] = useState('');
   const [wikipediaUrl, setWikipediaUrl] = useState('');
+  const [locationX, setLocationX] = useState('');
   
   const query = "Friedrichshafen"; // Standardwert für die Abfrage, falls keine Position gesetzt ist	
 
@@ -71,7 +74,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
 
   const fetchWikiData = async (searchTerm) => {
     if (!searchTerm) return;
-
+    const address2 = searchTerm;
     const url = `https://de.wikipedia.org/w/api.php?origin=*&action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&format=json`;
 
     try {
@@ -81,6 +84,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
       if (data?.query?.search?.length > 0) {
         const item = data.query.search[0];
         setWikipediaSnippet(item.snippet);
+        setLocationX(item.title);
         setWikipediaUrl(`https://de.wikipedia.org/?curid=${item.pageid}`);
       }
     } catch (err) {
@@ -122,58 +126,56 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
       icon={redIcon}
     >
       <Popup>
-        <div style={{ width: '250px' }}>
-          <strong>Wikipedia-Auszug:</strong>
+        <div style={{ width: '250px'}}>
+          <strong>Wikipedia-Auszug: {locationX}</strong>
           <p
             dangerouslySetInnerHTML={{
-              __html: `${wikipediaSnippet.slice(0, 100)}...`
+              __html: `${wikipediaSnippet.slice(0, 1000)}...`
             }}
           />
-          <button
-            onClick={() => onExpandRequest({
-              snippet: wikipediaSnippet,
-              url: wikipediaUrl,
-              position,
-            })}
-            style={{ marginTop: '0.5rem' }}
-          >
-            Mehr anzeigen
-          </button>
-          {wikipediaUrl && (
-            <div style={{ marginTop: '0.5rem' }}>
-              <a href={wikipediaUrl} target="_blank" rel="noopener noreferrer">
-                Zum Artikel
-              </a>
-            </div>
-          )}
+          <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', textAlign: 'center' }}>
+            <Button
+              fill
+              small
+              style={{
+                marginTop: '8px',
+                backgroundColor: '#1a73e8',
+                color: 'white',
+                width: '80%'
+              }}
+              onClick={() => onExpandRequest({
+                snippet: wikipediaSnippet,
+                url: wikipediaUrl,
+                title: locationX,
+                position,
+              })}
+            >
+              Mehr anzeigen
+            </Button>
+            <button 
+              onClick={() => addBookmark(position)}
+              style={{
+                ...bookmarkButtonStyle,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginLeft: '1em'
+              }}
+            >
+              <Icon
+                f7={isBookmarked ? 'bookmark_fill' : 'bookmark'}
+                size={20}
+                color={isBookmarked ? 'blue' : 'gray'}
+              />
+            </button>
+          </div>
         </div>
+      
+
+          {/*<div style={{ fontSize: '11px', color: '#1a73e8', marginTop: '4px', width: '100%' }}>
+            Zu Favoriten
+          </div>*/}
       </Popup>
-      {/*
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-        <b>Verschieb mich!</b><br />
-        Latitude: {position[0]?.toFixed(6)}<br />
-        Longitude: {position[1]?.toFixed(6)}<br />
-        <button 
-          onClick={() => addBookmark(position)}
-          style={{
-            ...bookmarkButtonStyle,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-            <Icon
-              f7={isBookmarked ? 'bookmark_fill' : 'bookmark'}
-              size={20}
-              color={isBookmarked ? 'blue' : 'gray'}
-            />
-        </button>
-        <div style={{ fontSize: '11px', color: '#1a73e8', marginTop: '4px', width: '100%' }}>
-          Zu Favoriten
-        </div>
-      </div>
-    </Popup>
-    */}
     </Marker>
   );
 };
@@ -548,7 +550,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           alignItems: 'center',
           zIndex: 10000,
           padding: '1rem',
-          overflowY: 'auto',
+         // overflowY: 'auto',
         }}>
           <div style={{
             backgroundColor: 'white',
@@ -557,20 +559,33 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
             height: '80vh',
             padding: '2rem',
             boxShadow: '0 0 15px rgba(0,0,0,0.3)',
-            overflowY: 'auto',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
           }}>
-            <h2>Wikipedia Auszug (Erweitert)</h2>
-            <div dangerouslySetInnerHTML={{ __html: expandedInfo.snippet }} />
-            {expandedInfo.url && (
-              <p>
-                <a href={expandedInfo.url} target="_blank" rel="noopener noreferrer">
-                  Zum Artikel auf Wikipedia
-                </a>
-              </p>
-            )}
-            <button onClick={closeOverlay} style={{ marginTop: '1rem' }}>
-              Schließen
-            </button>
+            <a
+              onClick={closeOverlay}
+              style={{
+                position: 'absolute',
+                top: '-0.4rem',
+                right: '0.25rem',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                color: '#333',
+                textDecoration: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              ×
+            </a>
+            <h1 className="text-align-center">Wikipedia-Ergebnisse für „{expandedInfo.title}“</h1>
+            <div style={{
+              overflowY: 'auto',
+              flex: 1,
+              marginTop: '1rem',
+            }}>
+            <WikiFetcher query={expandedInfo.title} />
+            </div>
           </div>
         </div>
       )}
