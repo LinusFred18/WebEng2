@@ -113,6 +113,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
         setLongitude(newPos.lng);
         setDestinationSelected(true);
         if (onManualDrag) onManualDrag();
+        marker.openPopup();
       }
     },
   };
