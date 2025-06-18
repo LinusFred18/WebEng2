@@ -1,6 +1,6 @@
 import { Card, CardContent } from 'framework7-react';
 import { FaCar, FaWalking, FaBicycle } from 'react-icons/fa';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 // format displayed time 
 const formatTime = (minutes) => {
@@ -22,17 +22,26 @@ const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMo
     { key: 'bike', label: 'Fahrrad', icon: <FaBicycle /> },
   ];
 
+  // update the infobox when the routedistance changes, so the text isn't cut off
+  useEffect(() => {
+    if (open && contentRef.current) {
+      contentRef.current.style.maxHeight = '0px';
+      contentRef.current.style.maxHeight = contentRef.current.scrollHeight + 'px';
+    }
+  }, [open, routeDistance, straightLineDistance]);
+
   return (
     <Card
       className="travel-card"
       style={{
         position: 'relative',
-        width: '15%',
-        margin: '0rem 1rem 0rem 0rem',
+        width: '20%',
+        zIndex: 1100,
+        margin: '0rem 0.5rem 0rem 0rem',
         height: 'fit-content',
-        borderRadius: '12px',
+        borderRadius: '8px',
         padding: '0.2rem 0.5rem',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         transition: 'all 0.3s ease',
       }}
@@ -64,7 +73,7 @@ const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMo
         <div ref={contentRef} style={{
           maxHeight: open ? `${contentRef.current?.scrollHeight}px` : '0px',
           overflow: 'hidden',
-          transition:'max-height 0.5s ease'
+          transition:'max-height 0.2s ease',
         }}>
           <CardContent
             className="travel-card-content"
@@ -182,7 +191,7 @@ const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMo
         }
           @media (max-width: 400px) {
           .distance-info {
-            font-size: 0.7rem !important;
+            font-size: 0.5rem !important;
           }
         }
       `}</style>

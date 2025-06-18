@@ -73,9 +73,9 @@ const LocationSearch = forwardRef(({ onSelect }, ref) => {
   return (
     <div style={{
       position: 'relative',
-      width: '85%',
+      width: '80%',
       height: 'fit-content',
-      zIndex: 1001,
+      zIndex: 1101,
       backgroundColor: 'white',
       borderRadius: '8px',
       boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
