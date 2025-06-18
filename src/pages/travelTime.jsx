@@ -140,11 +140,11 @@ const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMo
               alignItems: 'center'
             }}
           >
-            <span style={{ color: 'blue' }}>
-              <b>Route:</b> {routeDistance?.toFixed(2) ?? '-'} km
+            <span className="distance-line" style={{ color: 'blue' }}>
+              <b className="distance-label">Route:</b> <span className="distance-value">{routeDistance?.toFixed(2) ?? '-'}</span> km
             </span>
-            <span style={{ color: 'red' }}>
-              <b>Luftlinie:</b> {straightLineDistance?.toFixed(2) ?? '-'} km
+            <span className="distance-line" style={{ color: 'red' }}>
+              <b className="distance-label">Luftlinie:</b> <span className="distance-value">{straightLineDistance?.toFixed(2) ?? '-'}</span> km
             </span>
           </div>
         </div>
@@ -194,6 +194,18 @@ const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMo
             font-size: 0.5rem !important;
           }
         }
+        @media (max-width: 800px) {
+        .distance-label {
+          display: block;
+          margin-bottom: 0.1rem;
+        }
+      }
+        @media (max-width: 800px) {
+        .distance-info {
+          align-items: flex-start !important;
+          text-align: left !important;
+        }
+      }
       `}</style>
     </Card>
   );
