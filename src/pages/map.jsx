@@ -431,6 +431,9 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   
     } catch (error) {
       console.error('Fehler beim Routenberechnen:', error.message);
+      
+      //f7.dialog.alert('API Calls für OpenStreetMap aufgebraucht oder CORS-Problem. Versuchen Sie es gleich erneut!', 'Fehler');
+      
       setRouteCoords([]);
       const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
       setStraightLineCoords([gpsPosition, markerPosition]);
