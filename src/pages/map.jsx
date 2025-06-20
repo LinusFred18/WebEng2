@@ -386,7 +386,13 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
-      }).then(res => res.json().then(data => ({ profile, data, ok: res.ok })));
+      }).then(res => {
+        if (!res.ok) {
+          // explizit 429 als Fehler markieren
+          return res.json().then(data => Promise.reject({ status: res.status, profile, message: data }));
+        }
+        return res.json().then(data => ({ profile, data, ok: res.ok }));
+      });
     });
   
     try {
@@ -432,8 +438,13 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     } catch (error) {
       console.error('Fehler beim Routenberechnen:', error.message);
       
-      //f7.dialog.alert('API Calls für OpenStreetMap aufgebraucht oder CORS-Problem. Versuchen Sie es gleich erneut!', 'Fehler');
-      
+      if (error.status === 429 || error instanceof TypeError) {
+        f7.dialog.alert(
+          'API Calls für OpenRouteService sind erschöpft. Bitte versuchen Sie es später erneut.',
+          'Fehler'
+        );
+      }
+
       setRouteCoords([]);
       const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
       setStraightLineCoords([gpsPosition, markerPosition]);
