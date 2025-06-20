@@ -11,7 +11,6 @@ import ReverseGeocoding from './reverseGeocoding';
 import MapView from './map';
 import HomeViewButton from './homeViewButton';
 import WikiFetcher from '../components/WikipediaAPI';
-import TravelTime from './travelTime';
 import FadeInMenu from './fade-in-menu';
 //import coordinatesIcon from './icons/icons8-address-100.png';
 //import routeIcon from 'public/icons/icons8-address-100.png';
@@ -25,11 +24,11 @@ const HomePage = () => {
   const [longitude, setLongitude] = useState(null);
   
   // distance information of route
-  const [routeDistance, setRouteDistance] = useState(null);
-  const [straightLineDistance, setStraightLineDistance] = useState(null);
+  //const [routeDistance, setRouteDistance] = useState(null);
+  //const [straightLineDistance, setStraightLineDistance] = useState(null);
 
   // travel time per means of transport
-  const [travelTimes, setTravelTimes] = useState({car: null, bike: null, walk: null,});
+  //const [travelTimes, setTravelTimes] = useState({car: null, bike: null, walk: null,});
 
   // destination gps coordinates
   const [latitude2, setLatitude2] = useState(null);
@@ -112,9 +111,6 @@ const HomePage = () => {
         setLatitude={setLatitude2}
         setLongitude={setLongitude2}
         ref={mapRef}
-        setRouteDistance={setRouteDistance}
-        setStraightLineDistance={setStraightLineDistance}
-        setTravelTimes={setTravelTimes}
       />
       <HomeViewButton onClick={handleHomeViewClick} />
       <ReverseGeocoding
@@ -125,10 +121,6 @@ const HomePage = () => {
         longitude2={longitude2}
       />
       
-      <TravelTime 
-      travelTimes={travelTimes}
-      routeDistance={routeDistance}
-      straightLineDistance={straightLineDistance} />
 
       {/* Hamburger Menü */}
       <FadeInMenu mapRef={mapRef}/>
