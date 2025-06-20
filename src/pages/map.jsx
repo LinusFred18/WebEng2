@@ -44,22 +44,24 @@ const redIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-
-// draggable destination marker
+// A draggable map marker that fetches location data and shows a Wikipedia snippet in a popup
 const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, clearRoutes, addBookmark, bookmarks, setDestinationSelected, onManualDrag, onExpandRequest}) => {
   const markerRef = useRef(null);
   const [wikipediaSnippet, setWikipediaSnippet] = useState('');
   const [wikipediaUrl, setWikipediaUrl] = useState('');
   const [locationX, setLocationX] = useState('');
   
-  const query = "Friedrichshafen"; // Standardwert für die Abfrage, falls keine Position gesetzt ist	
+  // Default query if no reverse geolocation is available
+  const query = "Friedrichshafen"; 	
 
+  // Fetch reverse geolocation and Wikipedia data when the position changes
   useEffect(() => {
     if (position[0] != null && position[1] != null) {
       fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position[0]}&lon=${position[1]}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.address) {
+            // Determine the most specific available location name
             const query = data.address.city || data.address.town || data.address.village || data.address.suburb;
             fetchWikiData(query);
           } else {
@@ -96,23 +98,25 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
     fetchWikiData(query);
   }, [query]);
 
+  // Check if current position is already bookmarked
   const isBookmarked = bookmarks.some(
     (bm) =>
       Math.abs(bm.lat - position[0]) < 0.00001 &&
       Math.abs(bm.lng - position[1]) < 0.00001
   );
 
+  // Handler when the user finishes dragging the marker
   const eventHandlers = {
     dragend() {
       const marker = markerRef.current;
       if (marker != null) {
         const newPos = marker.getLatLng();
         setPosition([newPos.lat, newPos.lng]);
-        clearRoutes();
+        clearRoutes(); // Clear any existing routes
         setLatitude(newPos.lat);
         setLongitude(newPos.lng);
-        setDestinationSelected(true);
-        if (onManualDrag) onManualDrag();
+        setDestinationSelected(true); // Mark destination as selected
+        if (onManualDrag) onManualDrag(); // Optional callback
       }
     },
   };
@@ -181,28 +185,30 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
 };
 
 
-// draggable start point (gps) marker
+// A draggable marker that shows and updates the user's GPS position
 const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes, setGpsReady, calculateRoute, destinationSelected, setDestinationSelected }) => {
-  const { gpsLocation } = useGPSLocation();
+  const { gpsLocation } = useGPSLocation(); // Fetches live GPS location from a custom hook
   const markerRef = useRef(null);
 
+  // Update GPS position when new GPS location becomes available
   useEffect(() => {
     if (gpsLocation) {
       setGpsPosition([gpsLocation.latitude, gpsLocation.longitude]);
-      setGpsReady(true);
+      setGpsReady(true); // Mark that GPS data is ready to be used
     }
   }, [gpsLocation]);
 
+  // Handles marker drag end event: updates position and resets route
   const eventHandlers = {
     dragend() {
       const marker = markerRef.current;
       if (marker != null) {
         const newPos = marker.getLatLng();
-        setGpsPosition([newPos.lat, newPos.lng]);
-        clearRoutes();
-        setGpsReady(true);
+        setGpsPosition([newPos.lat, newPos.lng]); // Update the marker position
+        clearRoutes(); // Clear any existing routes
+        setGpsReady(true); // Set GPS as ready again after manual move
         if (!destinationSelected) {
-          setDestinationSelected(true);
+          setDestinationSelected(true); // Mark destination as selected if not already
         }
       }
     },
@@ -224,6 +230,7 @@ const GPSDraggableMarker = ({ gpsPosition, setGpsPosition, clearRoutes, setGpsRe
   );
 };
 
+// Component to handle clicks on the map and pass the clicked coordinates to a callback
 const MapClickHandler = ({ onClick }) => {
   useMapEvents({
     click(e) {
@@ -335,6 +342,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     setMarkerPosition([lat, lng]);
   }
 
+  // Expose functions to parent components using the ref
   useImperativeHandle(ref, () => ({
     calculateRoute,
     refreshGPS,
@@ -348,12 +356,14 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   },
   }));
 
+  // Automatically recalculate route when positions or destination change
   useEffect(() => {
     if (destinationSelected) {
       calculateRoute();
     }
   }, [markerPosition, gpsPosition, destinationSelected]);
 
+  // Calculates the straight-line (great-circle) distance between two coordinates using the Haversine formula
   function calculateStraightLineDistance(pos1, pos2) {
     const toRad = (value) => (value * Math.PI) / 180;
     const [lat1, lon1] = pos1;
@@ -366,11 +376,13 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     return R * c;
   }
 
+  // Main function to calculate the route using multiple travel profiles from OpenRouteService API
   async function calculateRoute() {
     const apiKey = '5b3ce3597851110001cf62485a5ab427aa2b4912b22184def3d18af0';
     const urlBase = 'https://api.openrouteservice.org/v2/directions/';
     const profiles = ['driving-car', 'cycling-regular', 'foot-walking'];
   
+    // Create a request for each profile (car, bike, foot)
     const requests = profiles.map(profile => {
       const url = `${urlBase}${profile}/geojson`;
       const body = {
@@ -379,6 +391,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
           [markerPosition[1], markerPosition[0]]
         ]
       };
+      // Send POST request for each transport profile
       return fetch(url, {
         method: 'POST',
         headers: {
@@ -388,7 +401,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
         body: JSON.stringify(body)
       }).then(res => {
         if (!res.ok) {
-          // explizit 429 als Fehler markieren
+          // Explicitly reject on status 429 (rate limit)
           return res.json().then(data => Promise.reject({ status: res.status, profile, message: data }));
         }
         return res.json().then(data => ({ profile, data, ok: res.ok }));
@@ -396,10 +409,12 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     });
   
     try {
+      // Wait for all API responses
       const results = await Promise.all(requests);
   
       const times = {};
 
+      // Parse results for each profile
       results.forEach(({ profile, data, ok }) => {
         if (!ok || !data?.features?.length) {
           console.warn(`Fehler bei Profil ${profile}`);
@@ -422,6 +437,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
 
       setTravelTimes(times);
   
+      // Set default route data to driving profile if available
       const autoRoute = results.find(r => r.profile === 'driving-car' && r.ok);
       if (autoRoute) {
         const coords = autoRoute.data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
@@ -430,21 +446,22 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
         setRouteDistance(distanceInKm);
       }
   
-      // straight line
+      // Calculate and store straight-line distance (Luftlinie)
       const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
       setStraightLineCoords([gpsPosition, markerPosition]);
       setStraightLineDistance(luftlinieKm);
   
     } catch (error) {
       console.error('Fehler beim Routenberechnen:', error.message);
-      
+
+      // Show alert if API rate limit exceeded or network error
       if (error.status === 429 || error instanceof TypeError) {
         f7.dialog.alert(
           'API Calls für OpenRouteService sind erschöpft. Bitte versuchen Sie es später erneut.',
           'Fehler'
         );
       }
-
+      // Fallback to straight-line only
       setRouteCoords([]);
       const luftlinieKm = calculateStraightLineDistance(gpsPosition, markerPosition);
       setStraightLineCoords([gpsPosition, markerPosition]);
@@ -453,7 +470,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     }
   }
 
-  // Overlay schließen
+  // Overlay close
   function closeOverlay() {
     setExpandedInfo(null);
   }
@@ -489,11 +506,11 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
     if (longitude) {
       setLong(longitude);
     }
-  }, [latitude, longitude]); // <-- immer neu suchen, wenn sich die query ändert!
+  }, [latitude, longitude]); 
 
 
   return (
-    <div style={{ position: 'relative', height: '100vh', width: '100%' }}>
+    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       <MapContainer
         bounds={[markerPosition, gpsPosition]}
         zoom={13}
@@ -564,7 +581,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
         <CompassSVG />
       </div>
 
-      {/* Großes Overlay für mehr Infos */}
+      {/* Bigger overlay for more informations */}
       {expandedInfo && (
         <div style={{
           position: 'fixed',

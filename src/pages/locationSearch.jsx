@@ -1,5 +1,6 @@
 import { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 
+// A location search input component using Nominatim API, with suggestions and external control via ref
 const LocationSearch = forwardRef(({ onSelect }, ref) => {
   const [displayValue, setDisplayValue] = useState('');
   const [inputValue, setInputValue] = useState('');
