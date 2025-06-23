@@ -18,18 +18,6 @@ const FadeInMenu = ({mapRef}) => {
     });
   };
 
-  {/*menu closes also when clicking somewhere on the map*/}
-  {/*useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuOpen && containerRef.current && !containerRef.current.contains(event.target)) {
-        setMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [menuOpen]);*/}
-
   // show the current bookmarks list
   useEffect(() => {
     if (showBookmarks && mapRef?.current?.getBookmarks) {
@@ -47,13 +35,10 @@ const FadeInMenu = ({mapRef}) => {
   return () => window.removeEventListener('bookmarksUpdated', handleBookmarksUpdate);
   }, []);
 
+    // set the marker to the bookmarked place by clicking on it in the list
     const onBookmarkClick = (index) => {
       if (mapRef?.current?.goToBookmark) {
-        mapRef.current.goToBookmark(index);
-        // close list after selection
-        //setShowBookmarks(false); 
-        // close menu after selection
-        //setMenuOpen(false);       
+        mapRef.current.goToBookmark(index);     
       }
     };
 

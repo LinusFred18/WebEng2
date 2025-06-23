@@ -5,6 +5,7 @@ const useGPSLocation = () => {
   const [gpsLocation, setGPSPosition] = useState(null);
   const [geoError, setGeoError] = useState(null);
 
+  // settings for getting the gps position of the user
   useEffect(() => {
     const geoOptions = {
       enableHighAccuracy: true,
@@ -12,11 +13,13 @@ const useGPSLocation = () => {
       maximumAge: 0,
     };
 
+    // successful retrieval of the gps position
     const geoSuccess = (pos) => {
       const { latitude, longitude } = pos.coords;
       setGPSPosition({ latitude, longitude });
     };
 
+    // error handling for unsuccessful retrieval of the gps position
     const geoErrorHandler = (err) => {
       let errorMessage = '';
 
@@ -39,6 +42,7 @@ const useGPSLocation = () => {
       f7.dialog.alert(`${errorMessage}`);
     };
 
+    // get gps position information if possible
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(geoSuccess, geoErrorHandler, geoOptions);
     } else {

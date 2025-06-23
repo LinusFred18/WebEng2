@@ -4,6 +4,7 @@ const GeoLocationWithReverse = ({ setAddressData, setLatitude, setLongitude, lat
   const [gpsLocation, setGPSPosition] = useState(null);
   const [geoError, setGeoError] = useState(null);
 
+  // settings for getting the gps position of the user
   useEffect(() => {
     const geoOptions = {
       enableHighAccuracy: true,
@@ -11,11 +12,13 @@ const GeoLocationWithReverse = ({ setAddressData, setLatitude, setLongitude, lat
       maximumAge: 0,
     };
 
+    // successful retrieval of the gps position
     const geoSuccess = (pos) => {
       const { latitude, longitude } = pos.coords;
       setGPSPosition({ latitude, longitude });
     };
 
+    // error handling for unsuccessful retrieval of the gps position
     const geoErrorHandler = (err) => {
       let errorMessage = '';
 
@@ -37,6 +40,7 @@ const GeoLocationWithReverse = ({ setAddressData, setLatitude, setLongitude, lat
       setGeoError(errorMessage);
     };
 
+    // get gps position information if possible
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(geoSuccess, geoErrorHandler, geoOptions);
     } else {
@@ -44,10 +48,10 @@ const GeoLocationWithReverse = ({ setAddressData, setLatitude, setLongitude, lat
     }
   }, []);
 
+  // perform reverse geo coding if both coordinates are given
   useEffect(() => {
     if (gpsLocation) {
       const { latitude, longitude } = gpsLocation;
-      console.log("A:", latitude2, longitude2);
       setLatitude(latitude);
       setLongitude(longitude);
 
@@ -55,7 +59,6 @@ const GeoLocationWithReverse = ({ setAddressData, setLatitude, setLongitude, lat
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude2}&lon=${longitude2}`)
           .then((res) => res.json())
           .then((data) => {
-            console.log("C:", data.adress);
             if (data.adress == null){
               data.adress = {road: "test"}
             }

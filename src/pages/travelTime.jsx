@@ -22,7 +22,7 @@ const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMo
     { key: 'bike', label: 'Fahrrad', icon: <FaBicycle /> },
   ];
 
-  // update the infobox when the routedistance changes, so the text isn't cut off
+  // update the infobox when the route distance changes, so the text is not cut off
   useEffect(() => {
     if (open && contentRef.current) {
       contentRef.current.style.maxHeight = '0px';
@@ -47,7 +47,7 @@ const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMo
       }}
     >
 
-      {/* Header mit Button zum Ein-/Ausklappen */}
+      {/* Header with button to expand/collapse */}
       <div 
         onClick={() => setOpen((prev) => !prev)} 
         style={{
@@ -69,7 +69,7 @@ const TravelTime = ({ travelTimes, routeDistance, straightLineDistance, activeMo
         </i>
       </div>
 
-      {/* Inhalt wird ausgeklappt, wenn `open` true ist */}
+      {/* expands when open is true */}
         <div ref={contentRef} style={{
           maxHeight: open ? `${contentRef.current?.scrollHeight}px` : '0px',
           overflow: 'hidden',

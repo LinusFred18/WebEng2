@@ -253,7 +253,6 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude}, r
 
   const [lat, setLat] = useState(null);
   const [long, setLong] = useState(null);
-  //console.log('Latitude:', latitude, 'Longitude:', longitude);
   const locationSearchRef = useRef();
 
   // travel time per means of transport
@@ -459,10 +458,10 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude}, r
     }
   }
 
-  // Overlay schließen
   function closeOverlay() {
     setExpandedInfo(null);
   }
+
   // reload gps data of user (for current position button)
   function refreshGPS() {
   if ('geolocation' in navigator) {
@@ -495,7 +494,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude}, r
     if (longitude) {
       setLong(longitude);
     }
-  }, [latitude, longitude]); // <-- immer neu suchen, wenn sich die query ändert!
+  }, [latitude, longitude]);
 
 
   return (
@@ -597,7 +596,6 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude}, r
           alignItems: 'center',
           zIndex: 10000,
           padding: '1rem',
-         // overflowY: 'auto',
         }}>
           <div style={{
             backgroundColor: 'white',
