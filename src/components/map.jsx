@@ -279,7 +279,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude}, r
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setGpsPosition([latitude, longitude]);
-        console.log("GPS refreshed:", latitude, longitude);
+
       },
       (err) => {
         console.error('Fehler beim Aktualisieren der GPS-Position:', err);
