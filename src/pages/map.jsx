@@ -522,7 +522,7 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude}, r
         zoom={13}
         scrollWheelZoom={true}
         zoomControl={false}
-        style={{ height: '100vh', width: '100%' }}
+        style={{ position: 'relative', height: '100dvh', width: '100%' }}
       >
         <MapClickHandler
           onClick={(latlng) => {
