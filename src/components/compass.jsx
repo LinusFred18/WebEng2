@@ -1,14 +1,15 @@
 import logo from '../../public/icons/compass.svg';
 
+// Compass Component
 const CompassSVG = () => {
   return (
     <div style={{
       position: 'absolute',
-      bottom: '2%',
+      bottom: '2.0rem',
       left: '3%',
       aspectRatio: '1',
-      maxWidth: '5rem',
-      maxHeight: '5rem',
+      width: '3.5rem',
+      height: '3.5rem',
       zIndex: 1000,
       pointerEvents: 'none',
       userSelect: 'none'
