@@ -1,4 +1,5 @@
 
+import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 import react from '@vitejs/plugin-react';
 
@@ -8,10 +9,13 @@ const PUBLIC_DIR = path.resolve(__dirname, './public');
 const BUILD_DIR = path.resolve(__dirname, './www',);
 export default async () => {
 
-  return  {
+  return {
     plugins: [
       react(),
-
+          VitePWA({
+      registerType: 'autoUpdate'
+      
+    })
     ],
     root: SRC_DIR,
     base: '',
@@ -31,6 +35,10 @@ export default async () => {
     },
     server: {
       host: true,
+      cors: true,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      }
     },
 
   };

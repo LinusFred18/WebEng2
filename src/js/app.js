@@ -2,6 +2,17 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
+// Service Worker registrieren
+import { registerSW } from 'virtual:pwa-register';
+registerSW({
+  onNeedRefresh() {
+    console.log('Ein neues Update ist verfügbar.');
+  },
+  onOfflineReady() {
+    console.log('App ist jetzt offlinefähig.');
+  },
+});
+
 // Import Framework7
 import Framework7 from 'framework7/lite-bundle';
 

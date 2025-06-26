@@ -1,72 +1,61 @@
-import React from 'react';
-import {
-  Page,
-  Navbar,
-  NavLeft,
-  NavTitle,
-  NavTitleLarge,
-  NavRight,
-  Link,
-  Toolbar,
-  Block,
-  BlockTitle,
-  List,
-  ListItem,
-  Button
-} from 'framework7-react';
+import { useState, useRef } from 'react';
+import {Page} from 'framework7-react';
 
-const HomePage = () => (
-  <Page name="home">
-    {/* Top Navbar */}
-    <Navbar large sliding={false}>
-      <NavLeft>
-        <Link iconIos="f7:menu" iconMd="material:menu" panelOpen="left" />
-      </NavLeft>
-      <NavTitle sliding>Gockel Maps</NavTitle>
-      <NavRight>
-        <Link iconIos="f7:menu" iconMd="material:menu" panelOpen="right" />
-      </NavRight>
-      <NavTitleLarge>Gockel Maps</NavTitleLarge>
-    </Navbar>
+import ReverseGeocoding from '../components/reverseGeocoding';
+import MapView from '../components/map';
+import HomeViewButton from '../components/homeViewButton';
+import FadeInMenu from '../components/fade-in-menu';
 
-    {/* Page content */}
-    <Block>
-      <p>This is an example of tabs-layout application. The main point of such tabbed layout is that each tab contains independent view with its own routing and navigation.</p>
+const HomePage = () => {
+  const [addressData, setAddressData] = useState(null);
+  // gps coordinates of user
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
 
-      <p>Each tab/view may have different layout, different navbar type (dynamic, fixed or static) or without navbar like this tab.</p>
-    </Block>
-    <BlockTitle>Navigation</BlockTitle>
-    <List strong inset dividersIos>
-      <ListItem link="/about/" title="About"/>
-      <ListItem link="/form/" title="Form"/>
-    </List>
+  // destination gps coordinates
+  const [latitude2, setLatitude2] = useState(null);
+  const [longitude2, setLongitude2] = useState(null);
 
-    <BlockTitle>Modals</BlockTitle>
-    <Block className="grid grid-cols-2 grid-gap">
-      <Button fill popupOpen="#my-popup">Popup</Button>
-      <Button fill loginScreenOpen="#my-login-screen">Login Screen</Button>
-    </Block>
+  const mapRef = useRef();
+  
+  // calculation of the route
+  const handleRouteCalculation = () => {
+    if (mapRef.current) {
+      mapRef.current.calculateRoute(); 
+    }
+  };
 
-    <BlockTitle>Panels</BlockTitle>
-    <Block className="grid grid-cols-2 grid-gap">
-      <Button fill panelOpen="left">Left Panel</Button>
-      <Button fill panelOpen="right">Right Panel</Button>
-    </Block>
+  const handleHomeViewClick = () => {
+    handleRouteCalculation();
+  };
 
-    <List strong inset dividersIos>
-      <ListItem
-        title="Dynamic (Component) Route"
-        link="/dynamic-route/blog/45/post/125/?foo=bar#about"
+  return (
+    <Page name="home">
+      {/* Map */}
+      <MapView
+        latitude={latitude}
+        longitude={longitude}
+        setLatitude={setLatitude2}
+        setLongitude={setLongitude2}
+        ref={mapRef}
       />
-      <ListItem
-        title="Default Route (404)"
-        link="/load-something-that-doesnt-exist/"
+
+      {/* Home button */}
+      <HomeViewButton onClick={handleHomeViewClick} />
+
+      {/* Reverse geo coding*/}
+      <ReverseGeocoding
+        setAddressData={setAddressData}
+        setLatitude={setLatitude}
+        setLongitude={setLongitude}
+        latitude2={latitude2}
+        longitude2={longitude2}
       />
-      <ListItem
-        title="Request Data & Load"
-        link="/request-and-load/user/123456/"
-      />
-    </List>
-  </Page>
-);
+      
+      {/* Hamburger menu */}
+      <FadeInMenu mapRef={mapRef}/>
+    </Page>
+  );
+};
+
 export default HomePage;
