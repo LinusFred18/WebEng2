@@ -7,11 +7,11 @@ import {
   Icon
 } from 'framework7-react';
 
-import ReverseGeocoding from './reverseGeocoding';
-import MapView from './map';
-import HomeViewButton from './homeViewButton';
+import ReverseGeocoding from '../components/reverseGeocoding';
+import MapView from '../components/map';
+import HomeViewButton from '../components/homeViewButton';
 import WikiFetcher from '../components/WikipediaAPI';
-import FadeInMenu from './fade-in-menu';
+import FadeInMenu from '../components/fade-in-menu';
 //import coordinatesIcon from './icons/icons8-address-100.png';
 //import routeIcon from 'public/icons/icons8-address-100.png';
 
