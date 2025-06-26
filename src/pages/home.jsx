@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react';
 import {Page} from 'framework7-react';
 
-import ReverseGeocoding from './reverseGeocoding';
-import MapView from './map';
-import HomeViewButton from './homeViewButton';
-import FadeInMenu from './fade-in-menu';
+import ReverseGeocoding from '../components/reverseGeocoding';
+import MapView from '../components/map';
+import HomeViewButton from '../components/homeViewButton';
+import FadeInMenu from '../components/fade-in-menu';
 
 const HomePage = () => {
   const [addressData, setAddressData] = useState(null);

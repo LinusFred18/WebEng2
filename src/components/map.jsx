@@ -4,11 +4,11 @@ import L from 'leaflet';
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle,} from 'react';
 import { Icon, f7 } from 'framework7-react';
 import useGPSLocation from './gps';
-import CompassSVG from '../components/compass';
+import CompassSVG from './compass';
 import LocationSearch from './locationSearch';
 import MapAutoFit from './mapAutofit';
 import { Button } from 'framework7-react';
-import WikiFetcher from '../components/WikipediaAPI';  
+import WikiFetcher from './WikipediaAPI';  
 import TravelTime from './travelTime';
 
 
