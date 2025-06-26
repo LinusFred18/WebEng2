@@ -1,6 +1,8 @@
 import React from 'react';
 import { Button, Icon } from 'framework7-react';
 
+
+// A floating button component that navigates to the Home view when clicked
 const HomeViewButton = ({ onClick }) => {
   return (
     <Button
