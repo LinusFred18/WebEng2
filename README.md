@@ -86,3 +86,11 @@ run the docker container with the following command:
 docker container run -p 9099:80 --name gockelmapscontainer gockelmaps
 
 app runs on: http://localhost:9099/
+
+## Service Worker
+
+To test the service worker (e.g. for offline support and caching), you must build the project first and then run a local preview server.
+This simulates a production environment:
+- npm install
+- npm run build
+- npx vite preview
