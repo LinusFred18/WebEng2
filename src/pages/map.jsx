@@ -9,6 +9,7 @@ import LocationSearch from './locationSearch';
 import MapAutoFit from './mapAutofit';
 import { Button } from 'framework7-react';
 import WikiFetcher from '../components/WikipediaAPI';  
+import TravelTime from './travelTime';
 
 
 const bookmarkButtonStyle = {
@@ -117,6 +118,7 @@ const DraggableMarker = ({ setLatitude, setLongitude, position, setPosition, cle
         setLongitude(newPos.lng);
         setDestinationSelected(true); // Mark destination as selected
         if (onManualDrag) onManualDrag(); // Optional callback
+        marker.openPopup();
       }
     },
   };
@@ -241,14 +243,13 @@ const MapClickHandler = ({ onClick }) => {
   return null;
 };
 
-const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, setRouteDistance, setStraightLineDistance, setTravelTimes}, ref) => {
+const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude}, ref) => {
   const [gpsPosition, setGpsPosition] = useState([47.666873, 9.444825]);
   const [markerPosition, setMarkerPosition] = useState([48.150901, 11.571602]);
   const [routeCoords, setRouteCoords] = useState([]);
   const [straightLineCoords, setStraightLineCoords] = useState([]);
   const [gpsReady, setGpsReady] = useState(false);
   const [destinationSelected, setDestinationSelected] = useState(false);
-
 
   const [expandedInfo, setExpandedInfo] = useState(null); // Neu: Für das große Overlay
 
@@ -261,6 +262,11 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
   const [long, setLong] = useState(null);
   //console.log('Latitude:', latitude, 'Longitude:', longitude);
   const locationSearchRef = useRef();
+
+  // travel time per means of transport
+  const [travelTimes, setTravelTimes] = useState({car: null, bike: null, walk: null,});
+  const [routeDistance, setRouteDistance] = useState(null);
+  const [straightLineDistance, setStraightLineDistance] = useState(null);
 
   function clearRoutes() {
     setRouteCoords([]);
@@ -567,8 +573,25 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
         )}
         <MapAutoFit routeCoords={routeCoords} />
       </MapContainer>
-
-      <LocationSearch
+      <div style={{
+        position: 'absolute',
+        width: '80%',
+        top: '1rem',
+        left: '10%',
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'top',
+        textAlign: 'center',
+        pointerEvents: 'none',
+        userSelect: 'none'
+      }}>
+        <TravelTime 
+          travelTimes={travelTimes}
+          routeDistance={routeDistance}
+          straightLineDistance={straightLineDistance}
+        />
+        <LocationSearch
           ref={locationSearchRef}
           onSelect={({ lat, lon }) => {
             setMarkerPosition([lat, lon]);
@@ -577,9 +600,8 @@ const MapView = forwardRef(({ latitude, longitude, setLatitude, setLongitude, se
             setDestinationSelected(true);
           }}
         />
-      <div style={{ position: 'absolute', bottom: '6%', left: '2%', aspectRatio: '1', maxWidth: '5rem', maxHeight: '5rem', zIndex: 1000, pointerEvents: 'none', userSelect: 'none' }}>
-        <CompassSVG />
       </div>
+      <CompassSVG/>
 
       {/* Bigger overlay for more informations */}
       {expandedInfo && (

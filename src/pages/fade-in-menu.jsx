@@ -120,7 +120,7 @@ const FadeInMenu = ({mapRef}) => {
       ref={containerRef}
       style={{
         position: 'fixed',
-        right: '3vw',
+        right: 'clamp(1rem, 3vw, 2rem)',
         bottom: '30px',
         display: 'flex',
         flexDirection: 'column',
